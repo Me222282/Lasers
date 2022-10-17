@@ -24,15 +24,24 @@ namespace Lasers
         public static unsafe T Read<T>(this Stream stream) where T : unmanaged
         {
             Span<byte> data = stackalloc byte[sizeof(T)];
-            stream.Read(data);
-
+            int r = stream.Read(data);
+            
+            // End of stream
+            if (r == 0) { return default; }
+            
             return MemoryMarshal.Cast<byte, T>(data)[0];
         }
 
         public static unsafe T[] ReadArray<T>(this Stream stream) where T : unmanaged
         {
             int length = stream.Read<int>();
-
+            
+            // Array data incorrect
+            if ((stream.Length - stream.Position) < length)
+            {
+                return null;
+            }
+            
             T[] array = new T[length];
 
             for (int i = 0; i < length; i++)

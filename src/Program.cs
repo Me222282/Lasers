@@ -127,7 +127,6 @@ namespace Lasers
         {
             get => (((2d / (Vector2)Size) * MouseLocation) - 1d) * (1d, -1d);
         }
-        
         private Vector2 MouseLocal()
         {
             return (MousePos / _zoom) - _offset;
@@ -242,15 +241,6 @@ namespace Lasers
                 return;
             }
         }
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
-            base.OnMouseMove(e);
-            
-            if (_followMouse)
-            {
-                _rayDir = (MouseLocal() - _source).Normalised();
-            }
-        }
         
         private Vector2 MouseChange()
         {
@@ -301,6 +291,16 @@ namespace Lasers
                 _offset += mouseRelNew - mouseRelOld;
                 return;
             }
+            if (this[Mods.Shift])
+            {
+                _offset.X += e.DeltaY * 0.1 / _zoom;
+                return;
+            }
+            else
+            {
+                _offset.Y -= e.DeltaY * 0.1 / _zoom;
+                return;
+            }
         }
         
         private int _bounceCount = 0;
@@ -315,6 +315,11 @@ namespace Lasers
             _bounceCount = 0;
             
             if (!_drawLight) { return; }
+            
+            if (_followMouse)
+            {
+                _rayDir = (MouseLocal() - _source).Normalised();
+            }
             
             Line2 ray = new Line2(_rayDir, _source);
             
@@ -540,20 +545,41 @@ namespace Lasers
             fs.Write(_source);
             fs.Write(_rayDir);
             fs.Write(_distance);
+            fs.Write(_zoom);
+            fs.Write(_offset);
             fs.Write(_walls.ToArray());
             
             fs.Close();
         }
         private void LoadState(Stream s)
         {
-            _followMouse = s.Read<bool>();
-            _drawLight = s.Read<bool>();
-            _source = s.Read<Vector2>();
-            _rayDir = s.Read<Vector2>();
-            _distance = s.Read<double>();
-            _walls.AddRange(
-                s.ReadArray<LinePoint>()
-            );
+            try
+            {
+                _followMouse = s.Read<bool>();
+                _drawLight = s.Read<bool>();
+                _source = s.Read<Vector2>();
+                _rayDir = s.Read<Vector2>();
+                _distance = s.Read<double>();
+                _zoom = s.Read<double>();
+                _offset = s.Read<Vector2>();
+                _walls.AddRange(
+                    s.ReadArray<LinePoint>()
+                );
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Invalid or corrupt save file.");
+                
+                // Reset values
+                _followMouse = true;
+                _drawLight = true;
+                _source = 0d;
+                _rayDir = (0.2d, 0.5d);
+                _distance = 10d;
+                _zoom = 1d;
+                _offset = 0d;
+                _walls.Clear();
+            }
         }
     }
 }
