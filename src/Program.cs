@@ -41,6 +41,12 @@ namespace Lasers
             public Vector2 Location { get; set; }
             public ColourF Colour { get; set; }
         }
+        private enum MouseMode
+        {
+            Select,
+            AddLine,
+            MoveSource
+        }
         
         public unsafe Program(int width, int height, string title)
             : base(width, height, title)
@@ -154,6 +160,7 @@ namespace Lasers
             }
         }
         
+        private MouseMode _mouseMode = MouseMode.Select;
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
@@ -167,13 +174,31 @@ namespace Lasers
                     return;
                 }
                 
-                _drawWall = true;
-                SelectWall();
-                return;
-            }
-            if (e.Button == MouseButton.Right)
-            {
-                _source = MouseLocal();
+                switch (_mouseMode)
+                {
+                    case MouseMode.Select:
+                        _drawWall = true;
+                        SelectWall();
+                        return;
+                        
+                    case MouseMode.AddLine:
+                        _drawWall = true;
+                        _walls.Add(new LinePoint(
+                            MouseLocal(),
+                            _wallColour
+                        ));
+                        _walls.Add(new LinePoint(
+                            MouseLocal(),
+                            _wallColour
+                        ));
+                        _currentWallIndex = _walls.Count - 1;
+                        return;
+                        
+                    case MouseMode.MoveSource:
+                        _source = MouseLocal();
+                        return;
+                }
+                
                 return;
             }
         }
@@ -393,7 +418,8 @@ namespace Lasers
             }
             if (e[Keys.L])
             {
-                _drawLight = !_drawLight;
+                //_drawLight = !_drawLight;
+                _followMouse = !_followMouse;
                 return;
             }
             if (e[Keys.C])
@@ -403,21 +429,20 @@ namespace Lasers
             }
             if (e[Keys.Space])
             {
-                _followMouse = !_followMouse;
+                _mouseMode = MouseMode.Select;
+                CursorStyle = Cursor.Default;
                 return;
             }
             if (e[Keys.A])
             {
-                _drawWall = true;
-                _walls.Add(new LinePoint(
-                    MouseLocal(),
-                    _wallColour
-                ));
-                _walls.Add(new LinePoint(
-                    MouseLocal(),
-                    _wallColour
-                ));
-                _currentWallIndex = _walls.Count - 1;
+                _mouseMode = MouseMode.AddLine;
+                CursorStyle = Cursor.CrossHair;
+                return;
+            }
+            if (e[Keys.S])
+            {
+                _mouseMode = MouseMode.MoveSource;
+                CursorStyle = Cursor.ResizeAll;
                 return;
             }
         }
