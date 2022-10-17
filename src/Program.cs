@@ -109,6 +109,13 @@ namespace Lasers
                 _lineBuffer.InitData(0);
             }
             
+            Vector2 offset = _offset;
+            if (_move)
+            {
+                offset += MouseChange();
+            }
+            _shader.Matrix2 = Matrix4.CreateTranslation((Vector3)offset) * Matrix4.CreateScale(_zoom);
+            
             _shader.ColourSource = ColourSource.AttributeColour;
             _lineArray.Draw<LinePoint>(DrawMode.Lines, 0);
             
@@ -116,9 +123,14 @@ namespace Lasers
             _textRenderer.DrawLeftBound($"Bounces: {_bounceCount}", _font, 0, 0);
         }
         
+        private Vector2 MousePos
+        {
+            get => (((2d / (Vector2)Size) * MouseLocation) - 1d) * (1d, -1d);
+        }
+        
         private Vector2 MouseLocal()
         {
-            return (((2d / (Vector2)Size) * MouseLocation) - 1d) * (1d, -1d);
+            return (MousePos / _zoom) - _offset;
         }
         
         private readonly ColourF _wallColour = new ColourF(1f, 1f, 1f);
@@ -160,6 +172,11 @@ namespace Lasers
             }
         }
         
+        private double _zoom = 1d;
+        private Vector2 _offset = Vector2.Zero;
+        private Vector2 _mouseOld;
+        private bool _move;
+        
         private MouseMode _mouseMode = MouseMode.Select;
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -179,6 +196,12 @@ namespace Lasers
                     case MouseMode.Select:
                         _drawWall = true;
                         SelectWall();
+                        
+                        if (!_drawWall)
+                        {
+                            _mouseOld = MousePos;
+                            _move = true;
+                        }
                         return;
                         
                     case MouseMode.AddLine:
@@ -208,6 +231,12 @@ namespace Lasers
             
             if (e.Button == MouseButton.Left)
             {
+                if (_move)
+                {
+                    _move = false;
+                    _offset += MouseChange();
+                }
+                
                 _drawWall = false;
                 _currentWallIndex = -1;
                 return;
@@ -223,16 +252,54 @@ namespace Lasers
             }
         }
         
+        private Vector2 MouseChange()
+        {
+            Vector2 value = (MousePos - _mouseOld) / _zoom;
+
+            //value.Y = -value.Y;
+
+            return value;
+        }
+        
         //private const double _minDist = 1d / 1_000_000d;
         protected override void OnScroll(ScrollEventArgs e)
         {
             base.OnScroll(e);
             
-            _distance += _distance * e.DeltaY * 0.1;
-            
-            if (_distance < 0.01)
+            if (this[Mods.Alt])
             {
-                _distance = 0.01;
+                _distance += _distance * e.DeltaY * 0.1;
+                
+                if (_distance < 0.01)
+                {
+                    _distance = 0.01;
+                }
+                return;
+            }
+            if (this[Mods.Control])
+            {
+                if (_move)
+                {
+                    _offset += MouseChange();
+                    _mouseOld = MousePos;
+                }
+
+                double newZoom = _zoom + (e.DeltaY * 0.05 * _zoom);
+
+                if (newZoom < 0) { return; }
+
+                double oldZoom = _zoom;
+                _zoom = newZoom;
+
+                // Zoom in on mouse
+
+                Vector2 mouse = MousePos;
+
+                Vector2 mouseRelOld = (mouse / oldZoom) - _offset;
+                Vector2 mouseRelNew = (mouse / _zoom) - _offset;
+
+                _offset += mouseRelNew - mouseRelOld;
+                return;
             }
         }
         
