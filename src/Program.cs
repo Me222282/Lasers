@@ -134,23 +134,40 @@ namespace Lasers
         
         private readonly ColourF _wallColour = new ColourF(1f, 1f, 1f);
         
-        private bool _drawWall = false;
+        private bool _drawWallPoint = false;
+        private bool _moveWall = false;
         private int _currentWallIndex = -1;
+        private Vector2 _moveOffset = 0d;
+        private Vector2 _moveOffsetB = 0d;
         private void CurrentWall()
         {
-            if (!_drawWall) { return; }
+            if (_drawWallPoint)
+            {
+                _walls[_currentWallIndex] = new LinePoint(
+                    MouseLocal() + _moveOffset,
+                    _wallColour
+                );
+                return;
+            }
+            
+            if (!_moveWall) { return; }
             
             _walls[_currentWallIndex] = new LinePoint(
-                MouseLocal(),
+                MouseLocal() + _moveOffset,
+                _wallColour
+            );
+            _walls[_currentWallIndex + 1] = new LinePoint(
+                MouseLocal() + _moveOffsetB,
                 _wallColour
             );
         }
         
-        private const double _selectDist = 0.05 * 0.05;
+        private const double _selectDist = 0.01 * 0.01;
         private void SelectWall()
         {
-            Vector2 mouse = MouseLocal();
+            _drawWallPoint = true;
             
+            Vector2 mouse = MouseLocal();
             double currentD = 1d;
             
             for (int i = 0; i < _walls.Count; i++)
@@ -158,16 +175,40 @@ namespace Lasers
                 Vector2 pos = _walls[i].Location;
                 
                 double d = pos.SquaredDistance(mouse);
-                if ((d < _selectDist) && (d < currentD))
+                if (((d * _zoom * _zoom) < _selectDist) && (d < currentD))
                 {
                     currentD = d;
                     _currentWallIndex = i;
+                    _moveOffset = pos - mouse;
                 }
             }
+            // Point found
+            if (_currentWallIndex >= 0) { return; }
             
+            _drawWallPoint = false;
+            _moveWall = true;
+            currentD = 1d;
+            
+            for (int i = 0; i < _walls.Count; i += 2)
+            {
+                Segment2 seg = new Segment2(
+                    _walls[i].Location,
+                    _walls[i + 1].Location
+                );
+                
+                double d = mouse.SquaredDistance(seg);
+                if (((d * _zoom * _zoom) < _selectDist) && (d < currentD))
+                {
+                    currentD = d;
+                    _currentWallIndex = i;
+                    _moveOffset = seg.A - mouse;
+                    _moveOffsetB = seg.B - mouse;
+                }
+            }
             if (_currentWallIndex < 0)
             {
-                _drawWall = false;
+                _moveWall = false;
+                return;
             }
         }
         
@@ -183,9 +224,9 @@ namespace Lasers
             
             if (e.Button == MouseButton.Left)
             {
-                if (_drawWall)
+                if (_drawWallPoint)
                 {
-                    _drawWall = false;
+                    _drawWallPoint = false;
                     _currentWallIndex = -1;
                     return;
                 }
@@ -193,10 +234,9 @@ namespace Lasers
                 switch (_mouseMode)
                 {
                     case MouseMode.Select:
-                        _drawWall = true;
                         SelectWall();
-                        
-                        if (!_drawWall)
+                        // No wall selected
+                        if (!(_drawWallPoint || _moveWall))
                         {
                             _mouseOld = MousePos;
                             _move = true;
@@ -204,7 +244,7 @@ namespace Lasers
                         return;
                         
                     case MouseMode.AddLine:
-                        _drawWall = true;
+                        _drawWallPoint = true;
                         _walls.Add(new LinePoint(
                             MouseLocal(),
                             _wallColour
@@ -236,8 +276,10 @@ namespace Lasers
                     _offset += MouseChange();
                 }
                 
-                _drawWall = false;
+                _drawWallPoint = false;
+                _moveWall = false;
                 _currentWallIndex = -1;
+                _moveOffset = 0d;
                 return;
             }
         }
@@ -274,7 +316,7 @@ namespace Lasers
                     _mouseOld = MousePos;
                 }
 
-                double newZoom = _zoom + (e.DeltaY * 0.05 * _zoom);
+                double newZoom = _zoom + (e.DeltaY * 0.1 * _zoom);
 
                 if (newZoom < 0) { return; }
 

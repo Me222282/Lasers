@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Zene.Structs;
 
 namespace Lasers
 {
@@ -50,6 +51,21 @@ namespace Lasers
             }
 
             return array;
+        }
+        
+        public static double Distance(this Vector2 p, Segment2 s)
+        {
+            double n = Math.Abs(((s.B.X - s.A.X) * (s.A.Y - p.Y)) - ((s.A.X - p.X) * (s.B.Y - s.A.Y)));
+            double d = s.A.Distance(s.B);
+            
+            return n / d;
+        }
+        public static double SquaredDistance(this Vector2 p, Segment2 s)
+        {
+            double n = Math.Abs(((s.B.X - s.A.X) * (s.A.Y - p.Y)) - ((s.A.X - p.X) * (s.B.Y - s.A.Y)));
+            double d = s.A.SquaredDistance(s.B);
+            
+            return (n * n) / d;
         }
     }
 }
