@@ -467,7 +467,7 @@ namespace Lasers
                 _lines.AddRange(points);
             }
             //_lines.AddRange(CurveLines(points));
-            _lines.AddRange(Cubic.InterpolateXY(points, 5));
+            _lines.AddRange(Cubic.InterpolateXY(points, 10));
         }
         private Vector2 Reflect(Vector2 dir, Vector2 line)
         {
