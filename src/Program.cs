@@ -462,7 +462,11 @@ namespace Lasers
                 _bounceCount++;
             }
             
-            _lines.AddRange(points);
+            if (_temp)
+            {
+                _lines.AddRange(points);
+            }
+            _lines.AddRange(CurveLines(points));
         }
         private Vector2 Reflect(Vector2 dir, Vector2 line)
         {
@@ -521,6 +525,7 @@ namespace Lasers
             );
         }
         
+        private bool _temp = false;
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -557,6 +562,11 @@ namespace Lasers
             {
                 _mouseMode = MouseMode.MoveSource;
                 CursorStyle = Cursor.ResizeAll;
+                return;
+            }
+            if (e[Keys.T])
+            {
+                _temp = !_temp;
                 return;
             }
         }
@@ -622,6 +632,96 @@ namespace Lasers
                 _offset = 0d;
                 _walls.Clear();
             }
+        }
+        
+        private LinePoint[] CurveLines(List<LinePoint> p)
+        {
+            if (p.Count % 2 != 0)
+            {
+                return p.ToArray();
+            }
+            
+            int lc = p.Count * 2;
+            
+            LinePoint[] newLines = new LinePoint[lc];
+            
+            double addition = 0.5 / lc;
+            
+            newLines[0] = new LinePoint(
+                Lerp(p, 0d),
+                p[0].Colour
+            );
+            
+            double pi = 0.5;
+            for (int i = 1; i < (lc - 1); i += 2)
+            {
+                Vector2 v = Lerp(p, addition * (i + 1));
+                
+                newLines[i] = new LinePoint(
+                    v, ReadLerpValue(p, pi)
+                );
+                newLines[i + 1] = new LinePoint(
+                    v, ReadLerpValue(p, pi)
+                );
+                
+                pi += 0.5;
+            }
+            
+            newLines[lc - 1] = new LinePoint(
+                Lerp(p, 1d),
+                p[p.Count - 1].Colour
+            );
+            
+            return newLines;
+        }
+        
+        private Vector2 Lerp(List<LinePoint> v, double b)
+        {   
+            Vector2[] lastLerps = new Vector2[v.Count / 2];
+            
+            int lc = 0;
+            for (int i = 0; i < v.Count; i += 2)
+            {
+                Vector2 c = v[i].Location.Lerp(v[i + 1].Location, b);
+                
+                Vector2 last = c;
+                
+                for (int l = 0; l < lc; l++)
+                {
+                    Vector2 old = last;
+                    
+                    last = lastLerps[l].Lerp(last, b);
+                    
+                    lastLerps[l] = old;
+                }
+                
+                lastLerps[lc] = last;
+                
+                lc++;
+            }
+            
+            return lastLerps[lastLerps.Length - 1];
+        }
+        
+        private ColourF ReadLerpValue(List<LinePoint> l, double i)
+        {
+            double a = l[(int)i].Colour.A;
+            float b = l[((int)i) + 1].Colour.A;
+            
+            //return Lerp(a, b, (float)i - ((int)i));
+            return new ColourF(
+                0f, 0.5f, 0.8f,
+                (float)a.Lerp(b, i - ((int)i))
+            );
+        }
+        private ColourF Lerp(ColourF a, ColourF b, float l)
+        {
+            return new ColourF(
+                a.R + ((b.R - a.R) * l),
+                a.G + ((b.B - a.B) * l),
+                a.B + ((b.G - a.G) * l),
+                a.A + ((b.A - a.A) * l)
+            );
         }
     }
 }
