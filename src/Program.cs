@@ -20,7 +20,7 @@ namespace Lasers
             Core.Terminate();
         }
         
-        private struct LinePoint
+        internal struct LinePoint
         {
             public LinePoint(Vector2 l, ColourF c)
             {
@@ -466,7 +466,8 @@ namespace Lasers
             {
                 _lines.AddRange(points);
             }
-            _lines.AddRange(CurveLines(points));
+            //_lines.AddRange(CurveLines(points));
+            _lines.AddRange(Cubic.InterpolateXY(points, 5));
         }
         private Vector2 Reflect(Vector2 dir, Vector2 line)
         {
