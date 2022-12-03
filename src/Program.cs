@@ -51,11 +51,11 @@ namespace Lasers
         public unsafe Program(int width, int height, string title)
             : base(width, height, title)
         {
-            _textRenderer = new NewTextRenderer()
+            _textRenderer = new TextRenderer()
             {
                 Projection = Matrix4.CreateOrthographic(width, height, 0, -1)
             };
-            _font = new DFFont2();
+            _font = new SampleFont();
             _shader = new BasicShader();
             
             _lineBuffer = new ArrayBuffer<LinePoint>(1, BufferUsage.DrawFrequent);
@@ -75,11 +75,12 @@ namespace Lasers
             
             // Blending
             State.Blending = true;
-            Zene.Graphics.Base.GL.BlendFunc(Zene.Graphics.Base.GLEnum.SrcAlpha, Zene.Graphics.Base.GLEnum.OneMinusSrcAlpha);
+            State.SourceScaleBlending = BlendFunction.SourceAlpha;
+            State.DestinationScaleBlending = BlendFunction.OneMinusSourceAlpha;
         }
         
-        private readonly NewFont _font;
-        private readonly NewTextRenderer _textRenderer;
+        private readonly Font _font;
+        private readonly TextRenderer _textRenderer;
         private readonly BasicShader _shader;
         
         private readonly ArrayBuffer<LinePoint> _lineBuffer;

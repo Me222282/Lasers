@@ -26,13 +26,4 @@
     <ProjectReference Include="..\deps\Windowing\src\Windowing.csproj" />
   </ItemGroup>
   
-  <ItemGroup>
-    <None Update="resources\DFFont.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\textfrag.glsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  
 </Project>
