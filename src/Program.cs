@@ -465,10 +465,10 @@ namespace Lasers
             
             if (_temp)
             {
-                _lines.AddRange(points);
+                _lines.AddRange(Cubic.InterpolateXY(points, 10));
+                return;
             }
-            //_lines.AddRange(CurveLines(points));
-            _lines.AddRange(Cubic.InterpolateXY(points, 10));
+            _lines.AddRange(points);
         }
         private Vector2 Reflect(Vector2 dir, Vector2 line)
         {
