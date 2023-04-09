@@ -7,3 +7,6 @@
 [submodule "deps/Windowing"]
 	path = deps/Windowing
 	url = https://github.com/Me222282/ZeneWindowing.git
+[submodule "deps/GUI"]
+	path = deps/GUI
+	url = https://github.com/Me222282/ZeneGUI.git

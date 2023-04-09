@@ -3,12 +3,19 @@ using Zene.Graphics;
 
 namespace Lasers
 {
-    public unsafe class DrawingArray : VertexArrayGL
+    public unsafe class DrawingLines : VertexArrayGL, IDrawObject
     {
+        private int _drawBufferSize = 0;
+        
         public void AddBuffer<T>(ArrayBuffer<T> buffer, uint index, int dataStart, DataType dataType, AttributeSize attributeSize) where T : unmanaged
-        {
+        {   
             int typeSize = sizeof(T);
-
+            
+            if (index == 0)
+            {
+                _drawBufferSize = typeSize;
+            }
+            
             buffer.Bind();
             EnableVertexAttribArray(index);
             if (GL.Version >= 3.3)
@@ -19,6 +26,11 @@ namespace Lasers
         }
         public void AddBuffer<T>(ArrayBuffer<T> buffer, uint index, int dataStart, int stride, DataType dataType, AttributeSize attributeSize) where T : unmanaged
         {
+            if (index == 0)
+            {
+                _drawBufferSize = stride;
+            }
+            
             buffer.Bind();
             EnableVertexAttribArray(index);
             if (GL.Version >= 3.3)
@@ -28,12 +40,15 @@ namespace Lasers
             VertexAttribPointer(index, attributeSize, dataType, false, stride, dataStart);
         }
 
-        public void Draw(DrawMode mode, int first, int size) => DrawArrays(mode, first, size);
-        public void Draw<T>(DrawMode mode, int index) where T : unmanaged
+        public Drawable GetRenderable(IDrawingContext context)
         {
-            ArrayBuffer<T> buffer = (ArrayBuffer<T>)Properties.GetBuffer(0);
+            IBuffer buffer = Properties.GetBuffer(0);
             
-            DrawArrays(mode, 0, buffer.Size);
+            return new Drawable(this,
+                new RenderInfo(
+                    DrawMode.Lines, 0,
+                    buffer.Properties.Size / _drawBufferSize
+                ));
         }
     }
 }

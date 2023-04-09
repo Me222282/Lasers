@@ -24,6 +24,7 @@
     <ProjectReference Include="..\deps\Graphics\src\Graphics.csproj" />
     <ProjectReference Include="..\deps\Structs\src\Structs.csproj" />
     <ProjectReference Include="..\deps\Windowing\src\Windowing.csproj" />
+    <ProjectReference Include="..\deps\GUI\src\GUI.csproj" />
   </ItemGroup>
   
 </Project>
