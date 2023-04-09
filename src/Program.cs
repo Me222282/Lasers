@@ -10,28 +10,6 @@ namespace Lasers
 {
     class Program : Element
     {
-        internal struct LinePoint
-        {
-            public LinePoint(Vector2 l, ColourF c)
-            {
-                Location = l;
-                Colour = c;
-            }
-            public LinePoint(double x, double y, float r, float g, float b)
-            {
-                Location = new Vector2(x, y);
-                Colour = new ColourF(r, g, b);
-            }
-            public LinePoint(double x, double y, float r, float g, float b, float a)
-            {
-                Location = new Vector2(x, y);
-                Colour = new ColourF(r, g, b, a);
-            }
-            
-            public Vector2 Location { get; set; }
-            public ColourF Colour { get; set; }
-        }
-        
         public Program()
         {
             Graphics = new LocalGraphics(this, OnRender);
@@ -40,10 +18,10 @@ namespace Lasers
             Random r = new Random();
             
             _context = new LineDC();
-            _mirrors = new Mirror[10];
-            for (int i = 0; i < _mirrors.Length; i++)
+            _objects = new LightObject[10];
+            for (int i = 0; i < _objects.Length; i++)
             {
-                _mirrors[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
+                _objects[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
             }
             
             _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), 0d);
@@ -58,12 +36,13 @@ namespace Lasers
             GUIWindow p = new GUIWindow(800, 500, "LIGHT");
             p.AddChild(new Program());
             p.RootElement.ShiftFocusRight();
-            p.Run();
+            //p.Run();
+            p.RunMultithread();
             
             Core.Terminate();
         }
         
-        private Mirror[] _mirrors;
+        private LightObject[] _objects;
         private LineDC _context;
         
         private void OnRender(object sender, RenderArgs e)
@@ -72,20 +51,22 @@ namespace Lasers
             
             RenderRay(_context);
             
-            for (int i = 0; i < _mirrors.Length; i++)
+            for (int i = 0; i < _objects.Length; i++)
             {
-                _mirrors[i].Render(_context);
+                _objects[i].Render(_context);
             }
             
             _context.Framebuffer = e.Context.Framebuffer;
             _context.Model = Matrix.Identity;
             _context.View = Matrix.Identity;
-            _context.Projection = Matrix.Identity;
+            _context.Projection = Projection();
+            _context.DrawBox(_bounds, ColourF.DarkCyan);
             _context.RenderCurrentLines();
         }
         
         private Ray _startRay;
         private double _distance = 10d;
+        private Box _bounds = new Box(-1d, 1d, 1d, -1d);
         
         private void RenderRay(LineDC context)
         {
@@ -98,45 +79,109 @@ namespace Lasers
             
             while (true)
             {
+                Segment2 seg = new Segment2(ray.Line, dist);
+                
                 ILightInteractable hit = null;
                 double closeDist = dist * dist;
                 Vector2 intersection = 0d;
-                for (int i = 0; i < _mirrors.Length; i++)
+                for (int i = 0; i < _objects.Length; i++)
                 {
-                    ILightInteractable current = _mirrors[i].Segments[0];
+                    LightObject lo = _objects[i];
                     
-                    if (current == lastHit) { continue; }
-                    
-                    Vector2 inter = current.RayIntersection(new Segment2(ray.Line, dist));
-                    
-                    double currentDist = inter.SquaredDistance(ray.Line.Location);
-                    if (currentDist < closeDist)
+                    for (int l = 0; l < lo.Segments.Length; l++)
                     {
-                        intersection = inter;
-                        closeDist = currentDist;
-                        hit = current;
+                        ILightInteractable current = lo.Segments[l];
+                        
+                        if (current == lastHit) { continue; }
+                        
+                        Vector2 inter = current.RayIntersection(seg);
+                        
+                        double currentDist = inter.SquaredDistance(ray.Line.Location);
+                        if (currentDist < closeDist)
+                        {
+                            intersection = inter;
+                            closeDist = currentDist;
+                            hit = current;
+                        }
                     }
                 }
                 lastHit = hit;
                 
+                Vector2 pointA = ray.Line.Location;
+                
                 if (closeDist == dist * dist)
                 {
-                    Segment2 temp = new Segment2(ray.Line, dist);
-                    context.DrawLine(new LineData(ray.Line.Location, temp.B, c, end));
-                    break;
+                    if (seg.B.X <= _bounds.Right &&
+                        seg.B.X >= _bounds.Left &&
+                        seg.B.Y <= _bounds.Top &&
+                        seg.B.Y >= _bounds.Bottom)
+                    {
+                        context.DrawLine(new LineData(ray.Line.Location, seg.B, c, end));
+                        break;
+                    }
+                    
+                    Line2 line = WallReflect(ray.Line);
+                    ray = new Ray(line, ray);
+                }
+                else
+                {
+                    ray = hit.InteractRay(ray, intersection);
                 }
                 
-                Vector2 pointA = ray.Line.Location;
-                ray = hit.InteractRay(ray, intersection);
                 double oldDist = dist;
                 dist -= pointA.Distance(ray.Line.Location);
                 
                 ColourF nc = end.Lerp(c, (float)(dist / oldDist));
                 context.DrawLine(new LineData(pointA, ray.Line.Location, c, nc));
                 c = nc;
+                
+                if (dist <= 0d) { break; }
             }
         }
-
+        private Line2 WallReflect(Line2 ray)
+        {
+            double xp = 0;
+            if (ray.Direction.X > _bounds.X)
+            {
+                xp = _bounds.Right;
+            }
+            else
+            {
+                xp = _bounds.Left;
+            }
+            double yTest = ray.GetY(xp);
+            
+            if (yTest <= _bounds.Top &&
+                yTest >= _bounds.Bottom)
+            {
+                return new Line2(
+                    (
+                        -ray.Direction.X,
+                        ray.Direction.Y
+                    ),
+                    (xp, yTest)
+                );
+            }
+            
+            double yp = 0;
+            if (ray.Direction.Y > _bounds.Y)
+            {
+                yp = _bounds.Top;
+            }
+            else
+            {
+                yp = _bounds.Bottom;
+            }
+            
+            return new Line2(
+                (
+                    ray.Direction.X,
+                    -ray.Direction.Y
+                ),
+                (ray.GetX(yp), yp)
+            );
+        }
+        
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -145,9 +190,9 @@ namespace Lasers
             {
                 Random r = new Random();
                 
-                for (int i = 0; i < _mirrors.Length; i++)
+                for (int i = 0; i < _objects.Length; i++)
                 {
-                    _mirrors[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
+                    _objects[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
                 }
                 
                 _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), 0d);
@@ -162,11 +207,36 @@ namespace Lasers
             {
                 Vector2 refPoint = _startRay.Line.Location;
                 Vector2 mouse = e.Location / (Size * 0.5d);
+                mouse *= _renderScale;
                 
                 Vector2 dir = (mouse - refPoint).Normalised();
                 
                 _startRay = new Ray(refPoint, dir, _startRay);
             }
+        }
+        
+        private Vector2 _renderScale = Vector2.One;
+        private IMatrix Projection()
+        {
+            double winWidth = Size.X;
+            double winHeight = Size.Y;
+
+            double w;
+            double h;
+
+            if (winHeight > winWidth)
+            {
+                w = _bounds.Width;
+                h = (winHeight / winWidth) * _bounds.Width;
+            }
+            else // Width is bigger
+            {
+                h = _bounds.Height;
+                w = (winWidth / (double)winHeight) * _bounds.Height;
+            }
+            
+            _renderScale = (w * 0.5, h * 0.5);
+            return Matrix4.CreateOrthographic(w, h, -1d, 1d);
         }
     }
 }

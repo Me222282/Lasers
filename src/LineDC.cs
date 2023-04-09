@@ -30,6 +30,7 @@ namespace Lasers
             
             Shader = _shader;
             _shader.ColourSource = ColourSource.AttributeColour;
+            Model = Matrix.Identity;
             this.Draw(_dl);
             
             _lines.Clear();
