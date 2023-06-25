@@ -22,9 +22,10 @@ namespace Lasers
             for (int i = 0; i < _objects.Length; i++)
             {
                 _objects[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
+                //_objects[i] = new RefractGlass(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d, 1.5d);
             }
             
-            _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), 0d);
+            _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), 1d);
         }
         
         public override GraphicsManager Graphics { get; }
@@ -61,12 +62,14 @@ namespace Lasers
             _context.View = Matrix.Identity;
             _context.Projection = Projection();
             _context.DrawBox(_bounds, ColourF.DarkCyan);
-            _context.RenderCurrentLines();
+            _context.RenderLines();
+            _context.ClearLines();
         }
         
         private Ray _startRay;
         private double _distance = 10d;
         private Box _bounds = new Box(-1d, 1d, 1d, -1d);
+        private bool _reflectiveBounds = true;
         
         private void RenderRay(LineDC context)
         {
@@ -111,12 +114,13 @@ namespace Lasers
                 
                 if (closeDist == dist * dist)
                 {
-                    if (seg.B.X <= _bounds.Right &&
+                    if (!_reflectiveBounds ||
+                        (seg.B.X <= _bounds.Right &&
                         seg.B.X >= _bounds.Left &&
                         seg.B.Y <= _bounds.Top &&
-                        seg.B.Y >= _bounds.Bottom)
+                        seg.B.Y >= _bounds.Bottom))
                     {
-                        context.DrawLine(new LineData(ray.Line.Location, seg.B, c, end));
+                        context.AddLine(new LineData(ray.Line.Location, seg.B, c, end));
                         break;
                     }
                     
@@ -132,7 +136,7 @@ namespace Lasers
                 dist -= pointA.Distance(ray.Line.Location);
                 
                 ColourF nc = end.Lerp(c, (float)(dist / oldDist));
-                context.DrawLine(new LineData(pointA, ray.Line.Location, c, nc));
+                context.AddLine(new LineData(pointA, ray.Line.Location, c, nc));
                 c = nc;
                 
                 if (dist <= 0d) { break; }
@@ -193,9 +197,16 @@ namespace Lasers
                 for (int i = 0; i < _objects.Length; i++)
                 {
                     _objects[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
+                    //_objects[i] = new RefractGlass(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d, 1.5d);
                 }
                 
-                _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), 0d);
+                _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), 1d);
+                return;
+            }
+            if (e[Keys.B])
+            {
+                _reflectiveBounds = !_reflectiveBounds;
+                return;
             }
         }
 
@@ -224,7 +235,7 @@ namespace Lasers
             double w;
             double h;
 
-            if (winHeight > winWidth)
+            if ((winHeight * _bounds.Width) > (winWidth * _bounds.Height))
             {
                 w = _bounds.Width;
                 h = (winHeight / winWidth) * _bounds.Width;

@@ -24,7 +24,7 @@ namespace Lasers
         private ArrayBuffer<LineData> _buffer;
         private BasicShader _shader;
         
-        internal void RenderCurrentLines()
+        internal void RenderLines()
         {
             _buffer.SetData(CollectionsMarshal.AsSpan(_lines));
             
@@ -32,10 +32,9 @@ namespace Lasers
             _shader.ColourSource = ColourSource.AttributeColour;
             Model = Matrix.Identity;
             this.Draw(_dl);
-            
-            _lines.Clear();
         }
         
-        public void DrawLine(LineData line) => _lines.Add(line);
+        public void AddLine(LineData line) => _lines.Add(line);
+        public void ClearLines() => _lines.Clear();
     }
 }

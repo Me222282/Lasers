@@ -14,6 +14,11 @@ namespace Lasers
             Line = line;
             Medium = source.Medium;
         }
+        public Ray(Vector2 point, Vector2 dir, double m)
+        {   
+            Line = new Line2(dir, point);
+            Medium = m;
+        }
         public Ray(Vector2 point, Vector2 dir, Ray source)
         {   
             Line = new Line2(dir, point);
