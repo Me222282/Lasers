@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Zene.Structs;
 
 namespace Lasers
@@ -23,30 +25,41 @@ namespace Lasers
         }
         
         public abstract QueryData QueryMouseSelect(Vector2 mousePos, double range);
-        public abstract void MouseInteract(Vector2 mousePos, int param);
+        public abstract void MouseInteract(Vector2 mousePos, ref QueryData data);
     }
     
     public struct QueryData
     {
-        public QueryData(int p, Vector2 l, ColourF3 c)
+        public QueryData(int p, Vector2 l, ColourF3 c, ILightInteractable source)
         {
             Param = p;
             Location = l;
             Colour = c;
-        }
-        public QueryData(bool pass)
-        {
-            Param = pass ? 0 : -1;
-            Location = Vector2.Zero;
-            Colour = ColourF3.Zero;
+            Source = source;
+            Shift = false;
+            Control = false;
         }
         
         public int Param { get; }
-        public Vector2 Location { get; }
-        public ColourF3 Colour { get; }
+        public Vector2 Location { get; set; }
+        public ColourF3 Colour { get; set; }
+        public ILightInteractable Source { get; }
         
-        public bool Pass() => Param >= 0;
+        public bool Shift { get; set; }
+        public bool Control { get; set; }
         
-        public static QueryData Fail { get; } = new QueryData(false);
+        public bool Pass() => Source != null;
+
+        public override bool Equals(object obj)
+        {
+            return obj is QueryData data &&
+                   Source == data.Source;
+        }
+        public override int GetHashCode() => HashCode.Combine(Param, Location, Colour, Source);
+
+        public static QueryData Fail { get; } = new QueryData();
+        
+        public static bool operator ==(QueryData a, QueryData b) =>  a.Equals(b);
+        public static bool operator !=(QueryData a, QueryData b) =>  !a.Equals(b);
     }
 }

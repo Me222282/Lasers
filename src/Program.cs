@@ -18,33 +18,35 @@ namespace Lasers
             _animator = new Animator();
             
             _context = new LineDC();
-            _engine = new LightingEngine()
-            {
-                Bounds = new Box(Vector2.Zero, (3d, 2d))
-            };
+            _engine = new LightingEngine();
             _ray = new DisperseRays()
             {
                 Colour = ColourF3.Yellow,
                 Distance = 2d,
                 Range = Radian.Degrees(5d),
-                RayCount = 200
+                RayCount = 100
             };
             _engine.LightSources.Add(_ray);
             GenerateObjects();
             
-            _spin = new AnimatorData<double>((v) =>
+            _spin = new AnimatorData<Radian>((v) =>
             {
                 _ray.Direction = (Math.Cos(v), Math.Sin(v));
-            }, 2d, 0d, Math.PI * 2d)
+            }, 20d, 0d, Radian.Full)
             {
                 Looping = true
             };
+            
+            _circleAnimation = new AnimatorData<double>((v) =>
+            {
+                _hoverCircleSize = v;
+            }, 0.08, 0d, _selectRange, Animator.Exponential);
         }
         
         //public override ElementList Children { get; }
         public override GraphicsManager Graphics { get; }
         private Animator _animator { get; }
-        private AnimatorData<double> _spin;
+        private AnimatorData<Radian> _spin;
         
         static void Main(string[] args)
         {
@@ -65,15 +67,18 @@ namespace Lasers
         //private RaySource _ray;
         private DisperseRays _ray;
         private const int _objCOunt = 2;
-        private Vector2 _multiplier = 1d;
-
+        private double _multiplier = 1d;
+        
+        private double _hoverCircleSize = 10d;
+        private AnimatorData<double> _circleAnimation;
+        
         protected override void OnUpdate(EventArgs e)
         {
             base.OnUpdate(e);
             
             _animator.Invoke();
             
-            _multiplier = _renderScale / (Size * 0.5d);
+            _multiplier = _renderScale.X / (Size.X * 0.5d);
             _engine.RenderLights(_context);
         }
         private void OnRender(object sender, RenderArgs e)
@@ -125,13 +130,14 @@ namespace Lasers
                         ColourF.White));
             }
             
-            if (_hover.Pass())
-            {
-                _context.DrawEllipse(new Box(_hover.Location, 5d * _multiplier), (ColourF)_hover.Colour);
-            }
-            
             _context.RenderLines();
             _context.ClearLines();
+            
+            // UI element to help show selectable poitns
+            if (_hover.Pass())
+            {
+                _context.DrawEllipse(new Box(_hover.Location, _hoverCircleSize * _multiplier), (ColourF)_hover.Colour);
+            }
         }
         
         protected override void OnKeyDown(KeyEventArgs e)
@@ -164,34 +170,31 @@ namespace Lasers
         private const double _selectRange = 10d;
         private QueryData _hover = QueryData.Fail;
         private LightObject _select;
-        private int _loSelectParam;
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
             
             Vector2 mouse = e.Location * _multiplier;
-            double range = _selectRange * _multiplier.X;
+            double range = _selectRange * _multiplier;
             
             for (int i = 0; i < _engine.Objects.Count; i++)
             {
-                int v = _engine.Objects[i].QueryMouseSelect(mouse, range).Param;
+                QueryData v = _engine.Objects[i].QueryMouseSelect(mouse, range);
                 
-                if (v < 0) { continue; }
+                if (!v.Pass()) { continue; }
                 
                 _select = _engine.Objects[i];
-                _loSelectParam = v;
+                _hover = v;
                 return;
             }
             
             _select = null;
-            _loSelectParam = 0;
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
             
             _select = null;
-            _loSelectParam = 0;
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
@@ -199,19 +202,34 @@ namespace Lasers
             
             Vector2 mouse = e.Location * _multiplier;
             
-            double range = _selectRange * _multiplier.X;
+            _hover.Shift = this[Mods.Shift];
+            _hover.Control = this[Mods.Control];
+            
+            if (_select != null)
+            {
+                _select.MouseInteract(mouse, ref _hover);
+                return;
+            }
+            
+            QueryData oldHover = _hover;
+            double range = _selectRange * _multiplier;
             for (int i = 0; i < _engine.Objects.Count; i++)
             {
                 _hover = _engine.Objects[i].QueryMouseSelect(mouse, range);
                 
                 if (!_hover.Pass()) { continue; }
+                
+                if (oldHover != _hover)
+                {
+                    if (!_hover.Pass())
+                    {
+                        _circleAnimation.Stop();
+                    }
+                    
+                    _circleAnimation.Reset(_animator);
+                }
+                
                 break;
-            }
-            
-            if (_select != null)
-            {
-                _select.MouseInteract(mouse, _loSelectParam);
-                return;
             }
             
             if (this[Keys.Space])

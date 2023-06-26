@@ -118,42 +118,104 @@ namespace Lasers
             
             if (mousePos.SquaredDistance(PointA) < range)
             {
-                return new QueryData(0, PointA, AB.Colour);
+                return new QueryData(0, PointA, AB.Colour, AB);
             }
             if (mousePos.SquaredDistance(PointB) < range)
             {
-                return new QueryData(1, PointB, BC.Colour);
+                return new QueryData(1, PointB, BC.Colour, BC);
             }
             if (mousePos.SquaredDistance(PointC) < range)
             {
-                return new QueryData(2, PointC, CD.Colour);
+                return new QueryData(2, PointC, CD.Colour, CD);
             }
             if (mousePos.SquaredDistance(PointD) < range)
             {
-                return new QueryData(3, PointD, DA.Colour);
+                return new QueryData(3, PointD, DA.Colour, DA);
             }
             
             return QueryData.Fail;
         }
-        public override void MouseInteract(Vector2 mousePos, int param)
+        public override void MouseInteract(Vector2 mousePos, ref QueryData data)
         {
-            if (param == 0)
+            data.Location = mousePos;
+            
+            if (data.Shift)
+            {
+                Set(data.Param, mousePos);
+                return;
+            }
+            
+            if (data.Param == 0)
             {
                 PointA = mousePos;
                 return;
             }
-            if (param == 1)
+            if (data.Param == 1)
             {
                 PointB = mousePos;
                 return;
             }
-            if (param == 2)
+            if (data.Param == 2)
             {
                 PointC = mousePos;
                 return;
             }
             
             PointD = mousePos;
+        }
+        private void Set(int param, Vector2 mouse)
+        {
+            if (param == 0)
+            {
+                PointA = mouse;
+                
+                Vector2 mid = PointA.Lerp(PointC, 0.5);
+                Vector2 diff = (PointA - PointC) / 2d;
+                Vector2 offset1 = (diff.Y, -diff.X);
+                Vector2 offset2 = (-diff.Y, diff.X);
+                
+                PointB = mid + offset1;
+                PointD = mid + offset2;
+                return;
+            }
+            if (param == 1)
+            {
+                PointB = mouse;
+                
+                Vector2 mid = PointB.Lerp(PointD, 0.5);
+                Vector2 diff = (PointB - PointD) / 2d;
+                Vector2 offset1 = (diff.Y, -diff.X);
+                Vector2 offset2 = (-diff.Y, diff.X);
+                
+                PointA = mid + offset1;
+                PointC = mid + offset2;
+                return;
+            }
+            if (param == 2)
+            {
+                PointC = mouse;
+                
+                Vector2 mid = PointC.Lerp(PointA, 0.5);
+                Vector2 diff = (PointC - PointA) / 2d;
+                Vector2 offset1 = (diff.Y, -diff.X);
+                Vector2 offset2 = (-diff.Y, diff.X);
+                
+                PointD = mid + offset1;
+                PointB = mid + offset2;
+                return;
+            }
+            else
+            {
+                PointD = mouse;
+                
+                Vector2 mid = PointD.Lerp(PointB, 0.5);
+                Vector2 diff = (PointD - PointB) / 2d;
+                Vector2 offset1 = (diff.Y, -diff.X);
+                Vector2 offset2 = (-diff.Y, diff.X);
+                
+                PointC = mid + offset1;
+                PointA = mid + offset2;
+            }
         }
     }
 }

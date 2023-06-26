@@ -30,18 +30,20 @@ namespace Lasers
             
             if (mousePos.SquaredDistance(PointA) < range)
             {
-                return new QueryData(0, PointA, _plain.Colour);
+                return new QueryData(0, PointA, _plain.Colour, _plain);
             }
             if (mousePos.SquaredDistance(PointB) < range)
             {
-                return new QueryData(1, PointB, _plain.Colour);
+                return new QueryData(1, PointB, _plain.Colour, _plain);
             }
             
             return QueryData.Fail;
         }
-        public override void MouseInteract(Vector2 mousePos, int param)
+        public override void MouseInteract(Vector2 mousePos, ref QueryData data)
         {
-            if (param == 0)
+            data.Location = mousePos;
+            
+            if (data.Param == 0)
             {
                 PointA = mousePos;
                 return;
