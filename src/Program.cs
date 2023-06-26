@@ -18,14 +18,8 @@ namespace Lasers
             Random r = new Random();
             
             _context = new LineDC();
-            _objects = new LightObject[10];
-            for (int i = 0; i < _objects.Length; i++)
-            {
-                _objects[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
-                //_objects[i] = new RefractGlass(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d, 1.5d);
-            }
-            
-            _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), 1d);
+            _objects = new LightObject[2];
+            GenerateObjects();
         }
         
         public override GraphicsManager Graphics { get; }
@@ -52,21 +46,23 @@ namespace Lasers
             
             RenderRay(_context);
             
-            for (int i = 0; i < _objects.Length; i++)
-            {
-                _objects[i].Render(_context);
-            }
-            
             _context.Framebuffer = e.Context.Framebuffer;
             _context.Model = Matrix.Identity;
             _context.View = Matrix.Identity;
             _context.Projection = Projection();
             _context.DrawBox(_bounds, ColourF.DarkCyan);
+            
+            for (int i = 0; i < _objects.Length; i++)
+            {
+                _objects[i].Render(_context);
+            }
+            
             _context.RenderLines();
             _context.ClearLines();
         }
         
         private Ray _startRay;
+        private double _startMedium = 1d;
         private double _distance = 10d;
         private Box _bounds = new Box(-1d, 1d, 1d, -1d);
         private bool _reflectiveBounds = true;
@@ -76,6 +72,8 @@ namespace Lasers
             ILightInteractable lastHit = null;
             
             Ray ray = _startRay;
+            ray.MediumHistory.Clear();
+            ray.MediumHistory.Add(_startMedium);
             double dist = _distance;
             ColourF c = Colour.Yellow;
             ColourF end = new ColourF(ColourF3.Yellow, 0f);
@@ -192,15 +190,7 @@ namespace Lasers
             
             if (e[Keys.R])
             {
-                Random r = new Random();
-                
-                for (int i = 0; i < _objects.Length; i++)
-                {
-                    _objects[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
-                    //_objects[i] = new RefractGlass(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d, 1.5d);
-                }
-                
-                _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), 1d);
+                Actions.Push(GenerateObjects);
                 return;
             }
             if (e[Keys.B])
@@ -248,6 +238,32 @@ namespace Lasers
             
             _renderScale = (w * 0.5, h * 0.5);
             return Matrix4.CreateOrthographic(w, h, -1d, 1d);
+        }
+        
+        private void GenerateObjects()
+        {   
+            Random r = new Random();
+            
+            for (int i = 0; i < _objects.Length; i++)
+            {
+                int type = r.Next(0, 2);
+                
+                if (type == 0)
+                {
+                    _objects[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
+                    continue;
+                }
+                
+                //_objects[i] = new RefractGlass(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d, r.NextDouble(0.5d, 2d));
+                _objects[i] = new GlassBlock(
+                    r.NextVector2(2) - 1d,
+                    r.NextVector2(2) - 1d,
+                    r.NextVector2(2) - 1d,
+                    r.NextVector2(2) - 1d,
+                    r.NextDouble(0.5d, 2d));
+            }
+            
+            _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), new List<double>());
         }
     }
 }

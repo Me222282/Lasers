@@ -1,31 +1,33 @@
+using System.Collections.Generic;
 using Zene.Structs;
 
 namespace Lasers
 {
     public struct Ray
     {
-        public Ray(Line2 line, double m)
+        public Ray(Line2 line, List<double> mh)
         {
             Line = line;
-            Medium = m;
+            MediumHistory = mh;
         }
         public Ray(Line2 line, Ray source)
         {   
             Line = line;
-            Medium = source.Medium;
+            MediumHistory = source.MediumHistory;
         }
-        public Ray(Vector2 point, Vector2 dir, double m)
+        public Ray(Vector2 point, Vector2 dir, List<double> mh)
         {   
             Line = new Line2(dir, point);
-            Medium = m;
+            MediumHistory = mh;
         }
         public Ray(Vector2 point, Vector2 dir, Ray source)
         {   
             Line = new Line2(dir, point);
-            Medium = source.Medium;
+            MediumHistory = source.MediumHistory;
         }
         
         public Line2 Line { get; }
-        public double Medium { get; }
+        public double Medium => MediumHistory[^1];
+        public List<double> MediumHistory { get; }
     }
 }

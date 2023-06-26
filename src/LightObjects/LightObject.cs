@@ -9,7 +9,7 @@ namespace Lasers
         
         public ILightInteractable[] Segments { get; }
         
-        public void Render(LineDC context)
+        public virtual void Render(LineDC context)
         {
             for (int i = 0 ; i < Segments.Length; i++)
             {
