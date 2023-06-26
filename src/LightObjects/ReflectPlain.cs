@@ -3,7 +3,7 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public struct ReflectPlain : ILightInteractable
+    public class ReflectPlain : ILightInteractable
     {
         public ReflectPlain(Vector2 a, Vector2 b)
         {
@@ -13,6 +13,8 @@ namespace Lasers
         
         public Vector2 PointA { get; set; }
         public Vector2 PointB { get; set; }
+        
+        public ColourF3 Colour => ColourF3.White;
         
         public void Render(LineDC context)
         {

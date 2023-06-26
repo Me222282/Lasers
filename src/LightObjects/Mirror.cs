@@ -7,26 +7,52 @@ namespace Lasers
         public Mirror(Vector2 a, Vector2 b)
             : base(1)
         {
-            Segments[0] = new ReflectPlain(a, b);
+            _plain = new ReflectPlain(a, b);
+            Segments[0] = _plain;
         }
+        
+        private ReflectPlain _plain;
         
         public Vector2 PointA
         {
-            get => ((ReflectPlain)Segments[0]).PointA;
-            set
-            {
-                ReflectPlain rp = (ReflectPlain)Segments[0];
-                Segments[0] = new ReflectPlain(value, rp.PointB);
-            }
+            get => _plain.PointA;
+            set => _plain.PointA = value;
         }
         public Vector2 PointB
         {
-            get => ((ReflectPlain)Segments[0]).PointB;
-            set
+            get => _plain.PointB;
+            set => _plain.PointB = value;
+        }
+        
+        public override QueryData QueryMouseSelect(Vector2 mousePos, double range)
+        {
+            range *= range;
+            
+            if (mousePos.SquaredDistance(PointA) < range)
             {
-                ReflectPlain rp = (ReflectPlain)Segments[0];
-                Segments[0] = new ReflectPlain(rp.PointA, value);
+                return new QueryData(0, PointA, _plain.Colour);
             }
+            if (mousePos.SquaredDistance(PointB) < range)
+            {
+                return new QueryData(1, PointB, _plain.Colour);
+            }
+            
+            return QueryData.Fail;
+        }
+        public override void MouseInteract(Vector2 mousePos, int param)
+        {
+            if (param == 0)
+            {
+                PointA = mousePos;
+                return;
+            }
+            
+            PointB = mousePos;
+        }
+
+        public override string ToString()
+        {
+            return $"{PointA}\n{PointB}";
         }
     }
 }

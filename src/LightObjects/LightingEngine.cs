@@ -60,13 +60,23 @@ namespace Lasers
                 {
                     LightObject lo = Objects[i];
                     
-                    for (int l = 0; l < lo.Segments.Length; l++)
+                    for (int l = 0; l < lo.Length; l++)
                     {
-                        ILightInteractable current = lo.Segments[l];
+                        ILightInteractable current = lo[l];
                         
                         if (current == lastHit) { continue; }
                         
                         Vector2 inter = current.RayIntersection(seg);
+                        
+                        // Intersection outside of bounds
+                        if (ReflectiveBounds &&
+                            (inter.X > Bounds.Right ||
+                            inter.X < Bounds.Left ||
+                            inter.Y > Bounds.Top ||
+                            inter.Y < Bounds.Bottom))
+                        {
+                            continue;
+                        }
                         
                         double currentDist = inter.SquaredDistance(ray.Line.Location);
                         if (currentDist < closeDist)
@@ -83,6 +93,7 @@ namespace Lasers
                 
                 if (closeDist == dist * dist)
                 {
+                    // Reaches end of ray without hitting wall
                     if (!ReflectiveBounds ||
                         (seg.B.X <= Bounds.Right &&
                         seg.B.X >= Bounds.Left &&
@@ -93,8 +104,10 @@ namespace Lasers
                         break;
                     }
                     
+                    // Reflect off walls
                     Line2 line = WallReflect(ray.Line);
                     ray = new Ray(line, ray);
+                    closeDist = pointA.SquaredDistance(ray.Line.Location);
                 }
                 else
                 {
@@ -102,7 +115,7 @@ namespace Lasers
                 }
                 
                 double oldDist = dist;
-                dist -= pointA.Distance(ray.Line.Location);
+                dist -= Math.Sqrt(closeDist);
                 
                 ColourF nc = end.Lerp(c, (float)(dist / oldDist));
                 lines.Add(new LineData(pointA, ray.Line.Location, c, nc));

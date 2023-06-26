@@ -22,6 +22,7 @@ namespace Lasers
                 stackalloc Vector2[] { a, b, c, d },
                 stackalloc byte[] { 0, 1, 2, 2, 3, 0 },
                 1, 0, AttributeSize.D2, BufferUsage.DrawFrequent);
+            _context = State.CurrentContext;
         }
         
         private RefractPlain AB;
@@ -37,13 +38,7 @@ namespace Lasers
                 AB.PointA = value;
                 DA.PointB = value;
                 
-                _drawable.SetData(stackalloc Vector2[]
-                    {
-                        AB.PointA,
-                        BC.PointA,
-                        CD.PointA,
-                        DA.PointA
-                    });
+                _context.Actions.Push(SetData);
             }
         }
         public Vector2 PointB
@@ -54,13 +49,7 @@ namespace Lasers
                 AB.PointB = value;
                 BC.PointA = value;
                 
-                _drawable.SetData(stackalloc Vector2[]
-                    {
-                        AB.PointA,
-                        BC.PointA,
-                        CD.PointA,
-                        DA.PointA
-                    });
+                _context.Actions.Push(SetData);
             }
         }
         public Vector2 PointC
@@ -71,13 +60,7 @@ namespace Lasers
                 CD.PointA = value;
                 BC.PointB = value;
                 
-                _drawable.SetData(stackalloc Vector2[]
-                    {
-                        AB.PointA,
-                        BC.PointA,
-                        CD.PointA,
-                        DA.PointA
-                    });
+                _context.Actions.Push(SetData);
             }
         }
         public Vector2 PointD
@@ -88,13 +71,7 @@ namespace Lasers
                 CD.PointB = value;
                 DA.PointA = value;
                 
-                _drawable.SetData(stackalloc Vector2[]
-                    {
-                        AB.PointA,
-                        BC.PointA,
-                        CD.PointA,
-                        DA.PointA
-                    });
+                _context.Actions.Push(SetData);
             }
         }
         public double Medium
@@ -109,8 +86,20 @@ namespace Lasers
             }
         }
         
+        private void SetData()
+        {
+            _drawable.SetData(stackalloc Vector2[]
+                {
+                    AB.PointA,
+                    BC.PointA,
+                    CD.PointA,
+                    DA.PointA
+                });
+        }
+        
         private DrawObject<Vector2, byte> _drawable;
         private BasicShader _shader = BasicShader.GetInstance();
+        private GraphicsContext _context;
         
         public override void Render(LineDC context)
         {
@@ -121,6 +110,50 @@ namespace Lasers
             context.Draw(_drawable);
             
             base.Render(context);
+        }
+        
+        public override QueryData QueryMouseSelect(Vector2 mousePos, double range)
+        {
+            range *= range;
+            
+            if (mousePos.SquaredDistance(PointA) < range)
+            {
+                return new QueryData(0, PointA, AB.Colour);
+            }
+            if (mousePos.SquaredDistance(PointB) < range)
+            {
+                return new QueryData(1, PointB, BC.Colour);
+            }
+            if (mousePos.SquaredDistance(PointC) < range)
+            {
+                return new QueryData(2, PointC, CD.Colour);
+            }
+            if (mousePos.SquaredDistance(PointD) < range)
+            {
+                return new QueryData(3, PointD, DA.Colour);
+            }
+            
+            return QueryData.Fail;
+        }
+        public override void MouseInteract(Vector2 mousePos, int param)
+        {
+            if (param == 0)
+            {
+                PointA = mousePos;
+                return;
+            }
+            if (param == 1)
+            {
+                PointB = mousePos;
+                return;
+            }
+            if (param == 2)
+            {
+                PointC = mousePos;
+                return;
+            }
+            
+            PointD = mousePos;
         }
     }
 }

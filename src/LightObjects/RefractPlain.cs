@@ -17,6 +17,8 @@ namespace Lasers
         public Vector2 PointB { get; set; }
         public double Medium { get; set; }
         
+        public ColourF3 Colour => ColourF3.LightGrey;
+        
         public void Render(LineDC context)
         {
             context.AddLine(new LineData(PointA, PointB, ColourF.LightGrey));
