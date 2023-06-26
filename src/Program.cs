@@ -11,8 +11,13 @@ namespace Lasers
     {   
         public Program()
         {
-            Graphics = new LocalGraphics(this, OnRender);
+            Graphics = new LocalGraphics(this, OnRender)
+            {
+                RendersWithScale = true,
+                RendersWithOffset = true
+            };
             Layout = new Layout(0d, 0d, 2d, 2d);
+            //Properties.ShiftInternalMouse = true;
             //Children = new ElementList(this);
             
             _animator = new Animator();
@@ -69,7 +74,7 @@ namespace Lasers
         private const int _objCOunt = 2;
         private double _multiplier = 1d;
         
-        private double _hoverCircleSize = 10d;
+        private double _hoverCircleSize = 0d;
         private AnimatorData<double> _circleAnimation;
         
         protected override void OnUpdate(EventArgs e)
@@ -78,7 +83,7 @@ namespace Lasers
             
             _animator.Invoke();
             
-            _multiplier = _renderScale.X / (Size.X * 0.5d);
+            _multiplier = _renderScale.X / (Size.X * 0.5d * ViewScale);
             _engine.RenderLights(_context);
         }
         private void OnRender(object sender, RenderArgs e)
@@ -93,7 +98,7 @@ namespace Lasers
             _context.Framebuffer = e.Context.Framebuffer;
             _context.Model = Matrix.Identity;
             _context.View = Matrix.Identity;
-            _context.Projection = Projection();
+            _context.Projection = Projection() * Graphics.Projection;
             if (_engine.ReflectiveBounds)
             {
                 _context.DrawBox(_engine.Bounds, new ColourF(0.1f, 0.1f, 0.1f));
@@ -134,7 +139,8 @@ namespace Lasers
             _context.ClearLines();
             
             // UI element to help show selectable poitns
-            if (_hover.Pass())
+            //if (_hover.Pass())
+            if (_hoverCircleSize > 0d)
             {
                 _context.DrawEllipse(new Box(_hover.Location, _hoverCircleSize * _multiplier), (ColourF)_hover.Colour);
             }
@@ -142,8 +148,17 @@ namespace Lasers
         
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            base.OnKeyDown(e);
-            
+            if (e[Keys.Escape])
+            {
+                Window.Close();
+                return;
+            }
+            if (e[Keys.C])
+            {
+                ViewScale = 1d;
+                ViewPan = Vector2.Zero;
+                return;
+            }
             if (e[Keys.R])
             {
                 Actions.Push(GenerateObjects);
@@ -172,38 +187,49 @@ namespace Lasers
         private LightObject _select;
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            base.OnMouseDown(e);
-            
-            Vector2 mouse = e.Location * _multiplier;
-            double range = _selectRange * _multiplier;
-            
-            for (int i = 0; i < _engine.Objects.Count; i++)
+            if (e.Button == MouseButton.Left)
             {
-                QueryData v = _engine.Objects[i].QueryMouseSelect(mouse, range);
+                Vector2 mouse = (e.Location - ViewPan) * _multiplier;
+                double range = _selectRange * _multiplier;
                 
-                if (!v.Pass()) { continue; }
+                for (int i = 0; i < _engine.Objects.Count; i++)
+                {
+                    QueryData v = _engine.Objects[i].QueryMouseSelect(mouse, range);
+                    
+                    if (!v.Pass()) { continue; }
+                    
+                    _select = _engine.Objects[i];
+                    _hover = v;
+                    return;
+                }
                 
-                _select = _engine.Objects[i];
-                _hover = v;
+                _select = null;
                 return;
             }
-            
-            _select = null;
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            base.OnMouseUp(e);
-            
-            _select = null;
+            if (e.Button == MouseButton.Left)
+            {
+                _select = null;
+            }
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            base.OnMouseMove(e);
-            
-            Vector2 mouse = e.Location * _multiplier;
+            Vector2 mouse = (e.Location - ViewPan) * _multiplier;
             
             _hover.Shift = this[Mods.Shift];
             _hover.Control = this[Mods.Control];
+            
+            if (this[MouseButton.Middle])
+            {
+                ViewPan += e.Location - _mouseOld;
+                _mouseOld = e.Location;
+            }
+            else
+            {
+                _mouseOld = e.Location;
+            }
             
             if (_select != null)
             {
@@ -219,17 +245,25 @@ namespace Lasers
                 
                 if (!_hover.Pass()) { continue; }
                 
-                if (oldHover != _hover)
+                break;
+            }
+            if (oldHover != _hover)
+            {   
+                if (!_hover.Pass() && oldHover.Pass())
                 {
-                    if (!_hover.Pass())
-                    {
-                        _circleAnimation.Stop();
-                    }
-                    
+                    _hover = new QueryData(1, oldHover.Location, oldHover.Colour, null);
+                    _circleAnimation.Reversed = true;
                     _circleAnimation.Reset(_animator);
                 }
-                
-                break;
+                else if (!_hover.Pass())
+                {
+                    _hover = oldHover;
+                }
+                else
+                {
+                    _circleAnimation.Reversed = false;
+                    _circleAnimation.Reset(_animator);
+                }
             }
             
             if (this[Keys.Space])
@@ -241,6 +275,27 @@ namespace Lasers
             }
         }
         
+        private Vector2 _mouseOld;
+        protected override void OnScroll(ScrollEventArgs e)
+        {
+            //ViewScale += e.DeltaY * 0.1d;
+            ZoomOnScreenPoint(MouseLocation, e.DeltaY);
+        }
+        private void ZoomOnScreenPoint(Vector2 point, double zoom)
+        {
+            double newZoom = ViewScale + (zoom * 0.1 * ViewScale);
+
+            if (newZoom < 0) { return; }
+
+            double oldZoom = ViewScale;
+            ViewScale = newZoom;
+
+            Vector2 pointRelOld = (point - ViewPan) / oldZoom;
+            Vector2 pointRelNew = (point - ViewPan) / newZoom;
+
+            ViewPan += (pointRelNew - pointRelOld) * newZoom;
+        }
+
         private Vector2 _renderScale = Vector2.One;
         private IMatrix Projection()
         {
@@ -263,7 +318,8 @@ namespace Lasers
             }
             
             _renderScale = (w * 0.5, h * 0.5);
-            return Matrix4.CreateOrthographic(w, h, -1d, 1d);
+            return Matrix4.CreateScale(Size / (w, h));
+            //return Matrix4.CreateOrthographic(w, h, -1d, 1d);
         }
         
         private void GenerateObjects()

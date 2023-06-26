@@ -53,7 +53,8 @@ namespace Lasers
         public override bool Equals(object obj)
         {
             return obj is QueryData data &&
-                   Source == data.Source;
+                   Source == data.Source &&
+                   Param == data.Param;
         }
         public override int GetHashCode() => HashCode.Combine(Param, Location, Colour, Source);
 
