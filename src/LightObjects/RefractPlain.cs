@@ -65,14 +65,6 @@ namespace Lasers
                 lineA -= Math.PI;
             }
             Radian dirA = Math.Atan2(ray.Line.Direction.Y, ray.Line.Direction.X);
-            if (dirA < 0)
-            {
-                dirA += TwoPI;
-            }
-            else if (dirA > TwoPI)
-            {
-                dirA -= TwoPI;
-            }
             
             Radian i = dirA - (lineA + HalfPI);
             double sin = (m1 * Math.Sin(i)) / m2;
@@ -87,7 +79,8 @@ namespace Lasers
             
             Radian r = Math.Asin(sin);
             Radian newA;
-            if (i > HalfPI || i < -HalfPI)
+            double cosI = Math.Cos(i);
+            if (cosI < 0)
             {
                 newA = -r + lineA - HalfPI;
             }

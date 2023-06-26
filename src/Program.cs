@@ -2,7 +2,6 @@
 using Zene.Windowing;
 using Zene.Graphics;
 using Zene.Structs;
-using System.Collections.Generic;
 using System.IO;
 using Zene.GUI;
 
@@ -15,10 +14,16 @@ namespace Lasers
             Graphics = new LocalGraphics(this, OnRender);
             Layout = new Layout(0d, 0d, 2d, 2d);
             
-            Random r = new Random();
-            
             _context = new LineDC();
-            _objects = new LightObject[2];
+            _engine = new LightingEngine();
+            _ray = new DisperseRays()
+            {
+                Colour = ColourF3.Yellow,
+                Distance = 2d,
+                Range = Radian.Degrees(5d),
+                RayCount = 200
+            };
+            _engine.LightSources.Add(_ray);
             GenerateObjects();
         }
         
@@ -37,151 +42,66 @@ namespace Lasers
             Core.Terminate();
         }
         
-        private LightObject[] _objects;
+        private LightingEngine _engine;
         private LineDC _context;
+        
+        //private RaySource _ray;
+        private DisperseRays _ray;
+        private const int _objCOunt = 2;
         
         private void OnRender(object sender, RenderArgs e)
         {
-            e.Context.Framebuffer.Clear(new ColourF(0.1f, 0.1f, 0.1f));
+            ColourF clear = ColourF.Black;
+            if (!_engine.ReflectiveBounds)
+            {
+                clear = new ColourF(0.1f, 0.1f, 0.1f);
+            }
+            e.Context.Framebuffer.Clear(clear);
             
-            RenderRay(_context);
+            _engine.RenderLights(_context);
             
             _context.Framebuffer = e.Context.Framebuffer;
             _context.Model = Matrix.Identity;
             _context.View = Matrix.Identity;
             _context.Projection = Projection();
-            _context.DrawBox(_bounds, ColourF.DarkCyan);
-            
-            for (int i = 0; i < _objects.Length; i++)
+            if (_engine.ReflectiveBounds)
             {
-                _objects[i].Render(_context);
+                _context.DrawBox(_engine.Bounds, new ColourF(0.1f, 0.1f, 0.1f));
+            }
+            
+            for (int i = 0; i < _engine.Objects.Count; i++)
+            {
+                _engine.Objects[i].Render(_context);
+            }
+            
+            if (_engine.ReflectiveBounds)
+            {
+                Box bounds = _engine.Bounds;
+                
+                _context.AddLine(
+                    new LineData(
+                        (bounds.Left, bounds.Top),
+                        (bounds.Right, bounds.Top),
+                        ColourF.White));
+                _context.AddLine(
+                    new LineData(
+                        (bounds.Left, bounds.Bottom),
+                        (bounds.Right, bounds.Bottom),
+                        ColourF.White));
+                _context.AddLine(
+                    new LineData(
+                        (bounds.Left, bounds.Top),
+                        (bounds.Left, bounds.Bottom),
+                        ColourF.White));
+                _context.AddLine(
+                    new LineData(
+                        (bounds.Right, bounds.Top),
+                        (bounds.Right, bounds.Bottom),
+                        ColourF.White));
             }
             
             _context.RenderLines();
             _context.ClearLines();
-        }
-        
-        private Ray _startRay;
-        private double _startMedium = 1d;
-        private double _distance = 10d;
-        private Box _bounds = new Box(-1d, 1d, 1d, -1d);
-        private bool _reflectiveBounds = true;
-        
-        private void RenderRay(LineDC context)
-        {
-            ILightInteractable lastHit = null;
-            
-            Ray ray = _startRay;
-            ray.MediumHistory.Clear();
-            ray.MediumHistory.Add(_startMedium);
-            double dist = _distance;
-            ColourF c = Colour.Yellow;
-            ColourF end = new ColourF(ColourF3.Yellow, 0f);
-            
-            while (true)
-            {
-                Segment2 seg = new Segment2(ray.Line, dist);
-                
-                ILightInteractable hit = null;
-                double closeDist = dist * dist;
-                Vector2 intersection = 0d;
-                for (int i = 0; i < _objects.Length; i++)
-                {
-                    LightObject lo = _objects[i];
-                    
-                    for (int l = 0; l < lo.Segments.Length; l++)
-                    {
-                        ILightInteractable current = lo.Segments[l];
-                        
-                        if (current == lastHit) { continue; }
-                        
-                        Vector2 inter = current.RayIntersection(seg);
-                        
-                        double currentDist = inter.SquaredDistance(ray.Line.Location);
-                        if (currentDist < closeDist)
-                        {
-                            intersection = inter;
-                            closeDist = currentDist;
-                            hit = current;
-                        }
-                    }
-                }
-                lastHit = hit;
-                
-                Vector2 pointA = ray.Line.Location;
-                
-                if (closeDist == dist * dist)
-                {
-                    if (!_reflectiveBounds ||
-                        (seg.B.X <= _bounds.Right &&
-                        seg.B.X >= _bounds.Left &&
-                        seg.B.Y <= _bounds.Top &&
-                        seg.B.Y >= _bounds.Bottom))
-                    {
-                        context.AddLine(new LineData(ray.Line.Location, seg.B, c, end));
-                        break;
-                    }
-                    
-                    Line2 line = WallReflect(ray.Line);
-                    ray = new Ray(line, ray);
-                }
-                else
-                {
-                    ray = hit.InteractRay(ray, intersection);
-                }
-                
-                double oldDist = dist;
-                dist -= pointA.Distance(ray.Line.Location);
-                
-                ColourF nc = end.Lerp(c, (float)(dist / oldDist));
-                context.AddLine(new LineData(pointA, ray.Line.Location, c, nc));
-                c = nc;
-                
-                if (dist <= 0d) { break; }
-            }
-        }
-        private Line2 WallReflect(Line2 ray)
-        {
-            double xp = 0;
-            if (ray.Direction.X > _bounds.X)
-            {
-                xp = _bounds.Right;
-            }
-            else
-            {
-                xp = _bounds.Left;
-            }
-            double yTest = ray.GetY(xp);
-            
-            if (yTest <= _bounds.Top &&
-                yTest >= _bounds.Bottom)
-            {
-                return new Line2(
-                    (
-                        -ray.Direction.X,
-                        ray.Direction.Y
-                    ),
-                    (xp, yTest)
-                );
-            }
-            
-            double yp = 0;
-            if (ray.Direction.Y > _bounds.Y)
-            {
-                yp = _bounds.Top;
-            }
-            else
-            {
-                yp = _bounds.Bottom;
-            }
-            
-            return new Line2(
-                (
-                    ray.Direction.X,
-                    -ray.Direction.Y
-                ),
-                (ray.GetX(yp), yp)
-            );
         }
         
         protected override void OnKeyDown(KeyEventArgs e)
@@ -195,7 +115,7 @@ namespace Lasers
             }
             if (e[Keys.B])
             {
-                _reflectiveBounds = !_reflectiveBounds;
+                _engine.ReflectiveBounds = !_engine.ReflectiveBounds;
                 return;
             }
         }
@@ -206,13 +126,12 @@ namespace Lasers
             
             if (this[Keys.Space])
             {
-                Vector2 refPoint = _startRay.Line.Location;
                 Vector2 mouse = e.Location / (Size * 0.5d);
                 mouse *= _renderScale;
                 
-                Vector2 dir = (mouse - refPoint).Normalised();
+                Vector2 dir = (mouse - _ray.Location).Normalised();
                 
-                _startRay = new Ray(refPoint, dir, _startRay);
+                _ray.Direction = dir;
             }
         }
         
@@ -224,16 +143,17 @@ namespace Lasers
 
             double w;
             double h;
-
-            if ((winHeight * _bounds.Width) > (winWidth * _bounds.Height))
+            Box bounds = _engine.Bounds;
+            
+            if ((winHeight * bounds.Width) > (winWidth * bounds.Height))
             {
-                w = _bounds.Width;
-                h = (winHeight / winWidth) * _bounds.Width;
+                w = bounds.Width;
+                h = (winHeight / winWidth) * bounds.Width;
             }
             else // Width is bigger
             {
-                h = _bounds.Height;
-                w = (winWidth / (double)winHeight) * _bounds.Height;
+                h = bounds.Height;
+                w = (winWidth / (double)winHeight) * bounds.Height;
             }
             
             _renderScale = (w * 0.5, h * 0.5);
@@ -243,27 +163,33 @@ namespace Lasers
         private void GenerateObjects()
         {   
             Random r = new Random();
+            _engine.Objects.Clear();
             
-            for (int i = 0; i < _objects.Length; i++)
+            for (int i = 0; i < _objCOunt; i++)
             {
                 int type = r.Next(0, 2);
                 
                 if (type == 0)
                 {
-                    _objects[i] = new Mirror(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d);
+                    _engine.Objects.Add(new Mirror(InBoundsPos(r), InBoundsPos(r)));
                     continue;
                 }
                 
-                //_objects[i] = new RefractGlass(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d, r.NextDouble(0.5d, 2d));
-                _objects[i] = new GlassBlock(
-                    r.NextVector2(2) - 1d,
-                    r.NextVector2(2) - 1d,
-                    r.NextVector2(2) - 1d,
-                    r.NextVector2(2) - 1d,
-                    r.NextDouble(0.5d, 2d));
+                _engine.Objects.Add(new GlassBlock(
+                    InBoundsPos(r),
+                    InBoundsPos(r),
+                    InBoundsPos(r),
+                    InBoundsPos(r),
+                    r.NextDouble(0.5d, 2d)));
             }
             
-            _startRay = new Ray(new Line2(r.NextVector2(2) - 1d, r.NextVector2(2) - 1d), new List<double>());
+            _ray.Location = InBoundsPos(r);
+            _ray.Direction = r.NextVector2(2d) - 1d;
+        }
+        private Vector2 InBoundsPos(Random r)
+        {
+            Box b = _engine.Bounds;
+            return r.NextVector2(b.Left, b.Right, b.Bottom, b.Top);
         }
     }
 }
