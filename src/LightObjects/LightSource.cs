@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Zene.Structs;
 
 namespace Lasers
@@ -22,6 +23,6 @@ namespace Lasers
         public Vector2 Location { get; set; }
         public ColourF3 Colour { get; set; }
         
-        public abstract ReadOnlySpan<Vector2> GetDirections();
+        public abstract IEnumerable<Vector2> GetDirections();
     }
 }

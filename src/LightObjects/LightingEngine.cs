@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Zene.Structs;
 
 namespace Lasers
@@ -23,24 +24,30 @@ namespace Lasers
         
         public void RenderLights(LineDC context)
         {
-            for (int i = 0; i < LightSources.Count; i++)
+            Parallel.ForEach(LightSources, (ls) =>
             {
-                CalculateLight(LightSources[i], context);
-            }
+                CalculateLight(ls, context);
+            });
         }
         
         public void CalculateLight(LightSource source, ICollection<LineData> lines)
         {
-            ReadOnlySpan<Vector2> directions =  source.GetDirections();
-            List<double> mh = new List<double>();
+            IEnumerable<Vector2> directions =  source.GetDirections();
             
+            Parallel.ForEach(directions, (d) =>
+            {
+                List<double> mh = new List<double>(){ 1d };
+                Ray ray = new Ray(source.Location, d, mh);
+                CalculateRay(ray, source.Distance, source.Colour, lines);
+            });
+            /*
             for (int i = 0; i < directions.Length; i++)
             {
                 mh.Clear();
                 mh.Add(1d);
                 Ray ray = new Ray(source.Location, directions[i], mh);
                 CalculateRay(ray, source.Distance, source.Colour, lines);
-            }
+            }*/
         }
         private void CalculateRay(Ray ray, double dist, ColourF3 colour, ICollection<LineData> lines)
         {

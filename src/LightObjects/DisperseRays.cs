@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Zene.Structs;
 
 namespace Lasers
@@ -52,7 +53,7 @@ namespace Lasers
         }
         
         private Vector2[] _directions;
-        public override ReadOnlySpan<Vector2> GetDirections() => _directions;
+        public override IEnumerable<Vector2> GetDirections() => _directions;
         
         private void CalculateDirections()
         {

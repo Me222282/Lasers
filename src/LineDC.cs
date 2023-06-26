@@ -30,23 +30,80 @@ namespace Lasers
 
         internal void RenderLines()
         {
-            _buffer.SetData(CollectionsMarshal.AsSpan(_lines));
-            
-            Shader = _shader;
-            _shader.ColourSource = ColourSource.AttributeColour;
-            Model = Matrix.Identity;
-            this.Draw(_dl);
+            lock (_lines)
+            {
+                _buffer.SetData(CollectionsMarshal.AsSpan(_lines));
+                
+                Shader = _shader;
+                _shader.ColourSource = ColourSource.AttributeColour;
+                Model = Matrix.Identity;
+                this.Draw(_dl);
+            }
         }
         
-        public void AddLine(LineData line) => _lines.Add(line);
-        public void ClearLines() => _lines.Clear();
+        public void AddLine(LineData line)
+        {
+            lock (_lines)
+            {
+                _lines.Add(line);
+            }
+        }
+        public void ClearLines()
+        {
+            lock (_lines)
+            {
+                _lines.Clear();
+            }
+        }
 
-        void ICollection<LineData>.Add(LineData item) => _lines.Add(item);
-        void ICollection<LineData>.Clear() => _lines.Clear();
-        bool ICollection<LineData>.Contains(LineData item) => _lines.Contains(item);
-        void ICollection<LineData>.CopyTo(LineData[] array, int arrayIndex) => _lines.CopyTo(array, arrayIndex);
-        bool ICollection<LineData>.Remove(LineData item) => _lines.Remove(item);
-        IEnumerator<LineData> IEnumerable<LineData>.GetEnumerator() => _lines.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => _lines.GetEnumerator();
+        void ICollection<LineData>.Add(LineData item)
+        {
+            lock (_lines)
+            {
+                _lines.Add(item);
+            }
+        }
+        void ICollection<LineData>.Clear()
+        {
+            lock (_lines)
+            {
+                _lines.Clear();
+            }
+        }
+        bool ICollection<LineData>.Contains(LineData item)
+        {
+            lock (_lines)
+            {
+                return _lines.Contains(item);
+            }
+        }
+        void ICollection<LineData>.CopyTo(LineData[] array, int arrayIndex)
+        {
+            lock (_lines)
+            {
+                _lines.CopyTo(array, arrayIndex);
+            }
+        }
+        bool ICollection<LineData>.Remove(LineData item)
+        {
+            lock (_lines)
+            {
+                return _lines.Remove(item);
+            }
+        }
+        IEnumerator<LineData> IEnumerable<LineData>.GetEnumerator()
+        {
+            lock (_lines)
+            {
+                return _lines.GetEnumerator();
+            }
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            lock (_lines)
+            {
+                return _lines.GetEnumerator();
+            }
+        }
     }
 }

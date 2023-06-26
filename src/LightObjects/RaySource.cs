@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Zene.Structs;
 
 namespace Lasers
@@ -22,12 +24,6 @@ namespace Lasers
             set => _direction = value;
         }
         
-        public unsafe override ReadOnlySpan<Vector2> GetDirections()
-        {
-            fixed (Vector2* ptr = &_direction)
-            {
-                return new ReadOnlySpan<Vector2>(ptr, 1);
-            }
-        }
+        public unsafe override IEnumerable<Vector2> GetDirections() => new Vector2[]{ _direction };
     }
 }
