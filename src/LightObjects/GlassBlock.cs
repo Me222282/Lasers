@@ -1,3 +1,4 @@
+using System;
 using Zene.Graphics;
 using Zene.Structs;
 
@@ -19,10 +20,12 @@ namespace Lasers
             Segments[3] = DA;
             
             _drawable = new DrawObject<Vector2, byte>(
-                stackalloc Vector2[] { a, b, c, d },
-                stackalloc byte[] { 0, 1, 2, 2, 3, 0 },
+                stackalloc Vector2[1],
+                stackalloc byte[1],
                 1, 0, AttributeSize.D2, BufferUsage.DrawFrequent);
             _context = State.CurrentContext;
+            
+            SetData();
         }
         
         private RefractPlain AB;
@@ -30,6 +33,14 @@ namespace Lasers
         private RefractPlain CD;
         private RefractPlain DA;
         
+        private Vector2 _pointA
+        {
+            set
+            {
+                AB.PointA = value;
+                DA.PointB = value;
+            }
+        }
         public Vector2 PointA
         {
             get => AB.PointA;
@@ -39,6 +50,14 @@ namespace Lasers
                 DA.PointB = value;
                 
                 _context.Actions.Push(SetData);
+            }
+        }
+        private Vector2 _pointB
+        {
+            set
+            {
+                BC.PointA = value;
+                AB.PointB = value;
             }
         }
         public Vector2 PointB
@@ -52,6 +71,14 @@ namespace Lasers
                 _context.Actions.Push(SetData);
             }
         }
+        private Vector2 _pointC
+        {
+            set
+            {
+                CD.PointA = value;
+                BC.PointB = value;
+            }
+        }
         public Vector2 PointC
         {
             get => CD.PointA;
@@ -61,6 +88,14 @@ namespace Lasers
                 BC.PointB = value;
                 
                 _context.Actions.Push(SetData);
+            }
+        }
+        private Vector2 _pointD
+        {
+            set
+            {
+                DA.PointA = value;
+                CD.PointB = value;
             }
         }
         public Vector2 PointD
@@ -88,13 +123,84 @@ namespace Lasers
         
         private void SetData()
         {
+            Vector2 overlap;
+            
+            Segment2 ab = new Segment2(AB.PointA, AB.PointB);
+            Segment2 cd = new Segment2(CD.PointA, CD.PointB);
+            if (ab.Intersects(cd, out overlap))
+            {
+                SetOverlapData(overlap, false);
+                return;
+            }
+            
+            Segment2 bc = new Segment2(BC.PointA, BC.PointB);
+            Segment2 da = new Segment2(DA.PointA, DA.PointB);
+            if (bc.Intersects(da, out overlap))
+            {
+                SetOverlapData(overlap, true);
+                return;
+            }
+            
+            Span<byte> index = stackalloc byte[6];
+            
+            if (AB.PointA.SquaredDistance(CD.PointA) < BC.PointA.SquaredDistance(DA.PointA))
+            {
+                index[0] = 0;
+                index[1] = 1;
+                index[2] = 2;
+                index[3] = 2;
+                index[4] = 3;
+                index[5] = 0;
+            }
+            else
+            {
+                index[0] = 1;
+                index[1] = 2;
+                index[2] = 3;
+                index[3] = 3;
+                index[4] = 0;
+                index[5] = 1;
+            }
+            
             _drawable.SetData(stackalloc Vector2[]
                 {
                     AB.PointA,
                     BC.PointA,
                     CD.PointA,
                     DA.PointA
-                });
+                }, index);
+        }
+        private unsafe void SetOverlapData(Vector2 overlap, bool option)
+        {
+            Span<byte> index = stackalloc byte[6];
+            
+            if (option)
+            {
+                index[0] = 0;
+                index[1] = 1;
+                index[2] = 4;
+                index[3] = 2;
+                index[4] = 3;
+                index[5] = 4;
+            }
+            else
+            {
+                index[0] = 0;
+                index[1] = 3;
+                index[2] = 4;
+                index[3] = 1;
+                index[4] = 2;
+                index[5] = 4;
+            }
+            
+            _drawable.SetData(stackalloc Vector2[]
+                {
+                    AB.PointA,
+                    BC.PointA,
+                    CD.PointA,
+                    DA.PointA,
+                    overlap
+                }, index);
         }
         
         private DrawObject<Vector2, byte> _drawable;
@@ -175,54 +281,58 @@ namespace Lasers
             
             if (param == 0)
             {
-                PointA = mouse;
+                _pointA = mouse;
                 
                 Vector2 mid = PointA.Lerp(PointC, 0.5);
                 Vector2 diff = (PointA - PointC) / 2d;
                 Vector2 offset1 = diff * rotate1;
                 Vector2 offset2 = diff * rotate2;
                 
-                PointB = mid + offset1;
-                PointD = mid + offset2;
+                _pointB = mid + offset1;
+                _pointD = mid + offset2;
+                _context.Actions.Push(SetData);
                 return;
             }
             if (param == 1)
             {
-                PointB = mouse;
+                _pointB = mouse;
                 
                 Vector2 mid = PointB.Lerp(PointD, 0.5);
                 Vector2 diff = (PointB - PointD) / 2d;
                 Vector2 offset1 = diff * rotate1;
                 Vector2 offset2 = diff * rotate2;
                 
-                PointA = mid + offset1;
-                PointC = mid + offset2;
+                _pointA = mid + offset1;
+                _pointC = mid + offset2;
+                _context.Actions.Push(SetData);
                 return;
             }
             if (param == 2)
             {
-                PointC = mouse;
+                _pointC = mouse;
                 
                 Vector2 mid = PointC.Lerp(PointA, 0.5);
                 Vector2 diff = (PointC - PointA) / 2d;
                 Vector2 offset1 = diff * rotate1;
                 Vector2 offset2 = diff * rotate2;
                 
-                PointD = mid + offset1;
-                PointB = mid + offset2;
+                _pointD = mid + offset1;
+                _pointB = mid + offset2;
+                _context.Actions.Push(SetData);
                 return;
             }
             else
             {
-                PointD = mouse;
+                _pointD = mouse;
                 
                 Vector2 mid = PointD.Lerp(PointB, 0.5);
                 Vector2 diff = (PointD - PointB) / 2d;
                 Vector2 offset1 = diff * rotate1;
                 Vector2 offset2 = diff * rotate2;
                 
-                PointC = mid + offset1;
-                PointA = mid + offset2;
+                _pointC = mid + offset1;
+                _pointA = mid + offset2;
+                _context.Actions.Push(SetData);
             }
         }
         private void SetControl(int param, Vector2 mosue)
@@ -237,10 +347,11 @@ namespace Lasers
                 ab.Location = mosue;
                 ad.Location = mosue;
                 
-                PointA = mosue;
+                _pointA = mosue;
                 
-                PointB = cb.Intersects(ab);
-                PointD = cd.Intersects(ad);
+                _pointB = cb.Intersects(ab);
+                _pointD = cd.Intersects(ad);
+                _context.Actions.Push(SetData);
                 return;
             }
             if (param == 1)
@@ -253,10 +364,11 @@ namespace Lasers
                 ba.Location = mosue;
                 bc.Location = mosue;
                 
-                PointB = mosue;
+                _pointB = mosue;
                 
-                PointA = ba.Intersects(da);
-                PointC = bc.Intersects(dc);
+                _pointA = ba.Intersects(da);
+                _pointC = bc.Intersects(dc);
+                _context.Actions.Push(SetData);
                 return;
             }
             if (param == 2)
@@ -269,10 +381,11 @@ namespace Lasers
                 cb.Location = mosue;
                 cd.Location = mosue;
                 
-                PointC = mosue;
+                _pointC = mosue;
                 
-                PointB = ab.Intersects(cb);
-                PointD = ad.Intersects(cd);
+                _pointB = ab.Intersects(cb);
+                _pointD = ad.Intersects(cd);
+                _context.Actions.Push(SetData);
                 return;
             }
             else
@@ -285,10 +398,11 @@ namespace Lasers
                 da.Location = mosue;
                 dc.Location = mosue;
                 
-                PointD = mosue;
+                _pointD = mosue;
                 
-                PointA = da.Intersects(ba);
-                PointC = dc.Intersects(bc);
+                _pointA = da.Intersects(ba);
+                _pointC = dc.Intersects(bc);
+                _context.Actions.Push(SetData);
             }
         }
     }
