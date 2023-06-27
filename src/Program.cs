@@ -20,6 +20,18 @@ namespace Lasers
             //Properties.ShiftInternalMouse = true;
             //Children = new ElementList(this);
             
+            _glowFrame = new TextureRenderer(1, 1);
+            _glowFrame.SetColourAttachment(0, TextureFormat.Rgba8);
+            _glowFrame.SetDepthAttachment(TextureFormat.Depth24Stencil8, false);
+            _blur = new PostShader()
+            {
+                //Kernel = PostShader.BlurKernel
+            };
+            _glowRender = new LineDC()
+            {
+                Framebuffer = _glowFrame
+            };
+            
             _animator = new Animator();
             
             _context = new LineDC();
@@ -65,6 +77,9 @@ namespace Lasers
         
         private LightingEngine _engine;
         private LineDC _context;
+        private LineDC _glowRender;
+        private TextureRenderer _glowFrame;
+        private PostShader _blur;
         private UserManager _um;
         
         //private RaySource _ray;
@@ -79,7 +94,7 @@ namespace Lasers
             _animator.Invoke();
             
             _multiplier = _renderScale.X / (Size.X * 0.5d * ViewScale);
-            _engine.RenderLights(_context);
+            _engine.RenderLights(_glowRender);
         }
         private void OnRender(object sender, RenderArgs e)
         {
@@ -89,14 +104,19 @@ namespace Lasers
                 clear = new ColourF(0.1f, 0.1f, 0.1f);
             }
             e.Context.Framebuffer.Clear(clear);
+            _glowFrame.Clear(clear);
             
             _context.Framebuffer = e.Context.Framebuffer;
+            _glowRender.Framebuffer = e.Context.Framebuffer;
             _context.Model = Matrix.Identity;
             _context.View = Matrix.Identity;
             _context.Projection = Projection() * Graphics.Projection;
+            _glowRender.Model = Matrix.Identity;
+            _glowRender.View = Matrix.Identity;
+            _glowRender.Projection = _context.Projection;
             if (_engine.ReflectiveBounds)
             {
-                _context.DrawBox(_engine.Bounds, new ColourF(0.1f, 0.1f, 0.1f));
+                _glowRender.DrawBox(_engine.Bounds, new ColourF(0.1f, 0.1f, 0.1f));
             }
             
             for (int i = 0; i < _engine.Objects.Count; i++)
@@ -130,10 +150,25 @@ namespace Lasers
                         ColourF.White));
             }
             
-            _context.RenderLines();
-            _context.ClearLines();
+            //_glowRender.RenderLines();
+            _glowRender.ClearLines();
             
-            _context.Render(_um, _multiplier);
+            _glowRender.Framebuffer = _glowFrame;
+            _glowFrame.Bind();
+            //_glowFrame.Clear(BufferBit.Depth | BufferBit.Colour);
+            _glowRender.Render(_um, _multiplier);
+            
+            // Draw blur frame
+            /*
+            _blur.TextureSlot = 0;
+            _glowFrame.GetTexture(FrameAttachment.Colour0).Bind(0);
+            _context.Model = Matrix.Identity;
+            _context.View = Matrix.Identity;
+            _context.Projection = Matrix4.CreateScale(2d);
+            ((IDrawingContext)_context).Shader = _blur;
+            _context.Draw(Shapes.Square);*/
+            //_context.DrawBox(new Box(Size, Vector2.Zero), _glowFrame.GetTexture(FrameAttachment.Colour0));
+            _context.WriteFramebuffer(_glowFrame, BufferBit.Colour, TextureSampling.Nearest);
         }
         
         protected override void OnKeyDown(KeyEventArgs e)
@@ -236,6 +271,17 @@ namespace Lasers
         {
             Box b = _engine.Bounds;
             return r.NextVector2(b.Left, b.Right, b.Bottom, b.Top);
+        }
+
+        protected override void OnSizeChange(VectorEventArgs e)
+        {
+            base.OnSizeChange(e);
+            
+            Actions.Push(() =>
+            {
+                _glowFrame.Size = (Vector2I)e.Value;
+                _glowFrame.ViewSize = (Vector2I)e.Value;
+            });
         }
     }
 }

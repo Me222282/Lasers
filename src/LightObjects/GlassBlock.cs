@@ -141,7 +141,12 @@ namespace Lasers
             
             if (data.Shift)
             {
-                Set(data.PointNumber, mousePos, data.Scroll);
+                SetShift(data.PointNumber, mousePos, data.Scroll);
+                return;
+            }
+            if (data.Control)
+            {
+                SetControl(data.PointNumber, mousePos);
                 return;
             }
             
@@ -163,7 +168,7 @@ namespace Lasers
             
             PointD = mousePos;
         }
-        private void Set(int param, Vector2 mouse, double scroll)
+        private void SetShift(int param, Vector2 mouse, double scroll)
         {
             Matrix2 rotate1 = Matrix2.CreateRotation(Radian.Quarter + (scroll * 0.03));
             Matrix2 rotate2 = Matrix2.CreateRotation(-Radian.Quarter + (scroll * 0.03));
@@ -218,6 +223,72 @@ namespace Lasers
                 
                 PointC = mid + offset1;
                 PointA = mid + offset2;
+            }
+        }
+        private void SetControl(int param, Vector2 mosue)
+        {
+            if (param == 0)
+            {
+                Line2 cb = new Line2(new Segment2(PointC, PointB));
+                Line2 cd = new Line2(new Segment2(PointC, PointD));
+                
+                Line2 ab = new Line2(new Segment2(PointA, PointB));
+                Line2 ad = new Line2(new Segment2(PointA, PointD));
+                ab.Location = mosue;
+                ad.Location = mosue;
+                
+                PointA = mosue;
+                
+                PointB = cb.Intersects(ab);
+                PointD = cd.Intersects(ad);
+                return;
+            }
+            if (param == 1)
+            {
+                Line2 da = new Line2(new Segment2(PointD, PointA));
+                Line2 dc = new Line2(new Segment2(PointD, PointC));
+                
+                Line2 ba = new Line2(new Segment2(PointB, PointA));
+                Line2 bc = new Line2(new Segment2(PointB, PointC));
+                ba.Location = mosue;
+                bc.Location = mosue;
+                
+                PointB = mosue;
+                
+                PointA = ba.Intersects(da);
+                PointC = bc.Intersects(dc);
+                return;
+            }
+            if (param == 2)
+            {
+                Line2 ab = new Line2(new Segment2(PointA, PointB));
+                Line2 ad = new Line2(new Segment2(PointA, PointD));
+                
+                Line2 cb = new Line2(new Segment2(PointC, PointB));
+                Line2 cd = new Line2(new Segment2(PointC, PointD));
+                cb.Location = mosue;
+                cd.Location = mosue;
+                
+                PointC = mosue;
+                
+                PointB = ab.Intersects(cb);
+                PointD = ad.Intersects(cd);
+                return;
+            }
+            else
+            {
+                Line2 ba = new Line2(new Segment2(PointB, PointA));
+                Line2 bc = new Line2(new Segment2(PointB, PointC));
+                
+                Line2 da = new Line2(new Segment2(PointD, PointA));
+                Line2 dc = new Line2(new Segment2(PointD, PointC));
+                da.Location = mosue;
+                dc.Location = mosue;
+                
+                PointD = mosue;
+                
+                PointA = da.Intersects(ba);
+                PointC = dc.Intersects(bc);
             }
         }
     }

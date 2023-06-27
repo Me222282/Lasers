@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Zene.Graphics;
 using Zene.GUI;
 using Zene.Structs;
@@ -51,7 +49,8 @@ namespace Lasers
             //if (_hover.Pass())
             if (_hoverCircleSize > 0d)
             {
-                context.DrawEllipse(new Box(_hoverPosition, _hoverCircleSize * _multiplier), ColourF.LightCyan);
+                //context.DrawEllipse(new Box(_hoverPosition, _hoverCircleSize * _multiplier), ColourF.LightCyan);
+                context.DrawRing(new Box(_hoverPosition, _hoverCircleSize * _multiplier), 2d * _multiplier, ColourF.PowderBlue);
             }
         }
         

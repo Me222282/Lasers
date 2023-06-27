@@ -27,4 +27,13 @@
     <ProjectReference Include="..\deps\GUI\src\GUI.csproj" />
   </ItemGroup>
   
+  <ItemGroup>
+    <None Update="resources/FragmentShaderP.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources/VertexShaderP.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
 </Project>
