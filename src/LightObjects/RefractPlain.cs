@@ -50,7 +50,6 @@ namespace Lasers
             {
                 m1 = Medium;
                 m2 = mh[^2];
-                mh.RemoveAt(mh.Count - 1);
             }
             else
             {
@@ -75,8 +74,13 @@ namespace Lasers
             if (sin > 1d || sin < -1d)
             {
                 Radian reflect = (lineA * 2d) - dirA;
-            
+                
                 return new Ray(refPoint, (Math.Cos(reflect), Math.Sin(reflect)), ray);
+            }
+            // Apply after potential total internal reflection
+            if (m1 == Medium)
+            {
+                mh.RemoveAt(mh.Count - 1);
             }
             
             Radian r = Math.Asin(sin);

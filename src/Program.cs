@@ -34,6 +34,8 @@ namespace Lasers
             _engine.LightSources.Add(_ray);
             GenerateObjects();
             
+            _um = new UserManager(this, _engine, _animator);
+            
             _spin = new AnimatorData<Radian>((v) =>
             {
                 _ray.Direction = (Math.Cos(v), Math.Sin(v));
@@ -41,16 +43,11 @@ namespace Lasers
             {
                 Looping = true
             };
-            
-            _circleAnimation = new AnimatorData<double>((v) =>
-            {
-                _hoverCircleSize = v;
-            }, 0.08, 0d, _selectRange, Animator.Exponential);
         }
         
         //public override ElementList Children { get; }
         public override GraphicsManager Graphics { get; }
-        private Animator _animator { get; }
+        private Animator _animator;
         private AnimatorData<Radian> _spin;
         
         static void Main(string[] args)
@@ -68,14 +65,12 @@ namespace Lasers
         
         private LightingEngine _engine;
         private LineDC _context;
+        private UserManager _um;
         
         //private RaySource _ray;
         private DisperseRays _ray;
         private const int _objCOunt = 2;
         private double _multiplier = 1d;
-        
-        private double _hoverCircleSize = 0d;
-        private AnimatorData<double> _circleAnimation;
         
         protected override void OnUpdate(EventArgs e)
         {
@@ -138,12 +133,7 @@ namespace Lasers
             _context.RenderLines();
             _context.ClearLines();
             
-            // UI element to help show selectable poitns
-            //if (_hover.Pass())
-            if (_hoverCircleSize > 0d)
-            {
-                _context.DrawEllipse(new Box(_hover.Location, _hoverCircleSize * _multiplier), (ColourF)_hover.Colour);
-            }
+            _context.Render(_um, _multiplier);
         }
         
         protected override void OnKeyDown(KeyEventArgs e)
@@ -182,120 +172,14 @@ namespace Lasers
             }
         }
         
-        private const double _selectRange = 10d;
-        private QueryData _hover = QueryData.Fail;
-        private LightObject _select;
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            if (e.Button == MouseButton.Left)
-            {
-                Vector2 mouse = (e.Location - ViewPan) * _multiplier;
-                double range = _selectRange * _multiplier;
-                
-                for (int i = 0; i < _engine.Objects.Count; i++)
-                {
-                    QueryData v = _engine.Objects[i].QueryMouseSelect(mouse, range);
-                    
-                    if (!v.Pass()) { continue; }
-                    
-                    _select = _engine.Objects[i];
-                    _hover = v;
-                    return;
-                }
-                
-                _select = null;
-                return;
-            }
-        }
-        protected override void OnMouseUp(MouseEventArgs e)
-        {
-            if (e.Button == MouseButton.Left)
-            {
-                _select = null;
-            }
-        }
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
             Vector2 mouse = (e.Location - ViewPan) * _multiplier;
-            
-            _hover.Shift = this[Mods.Shift];
-            _hover.Control = this[Mods.Control];
-            
-            if (this[MouseButton.Middle])
-            {
-                ViewPan += e.Location - _mouseOld;
-                _mouseOld = e.Location;
-            }
-            else
-            {
-                _mouseOld = e.Location;
-            }
-            
-            if (_select != null)
-            {
-                _select.MouseInteract(mouse, ref _hover);
-                return;
-            }
-            
-            QueryData oldHover = _hover;
-            double range = _selectRange * _multiplier;
-            for (int i = 0; i < _engine.Objects.Count; i++)
-            {
-                _hover = _engine.Objects[i].QueryMouseSelect(mouse, range);
-                
-                if (!_hover.Pass()) { continue; }
-                
-                break;
-            }
-            if (oldHover != _hover)
-            {   
-                if (!_hover.Pass() && oldHover.Pass())
-                {
-                    _hover = new QueryData(1, oldHover.Location, oldHover.Colour, null);
-                    _circleAnimation.Reversed = true;
-                    _circleAnimation.Reset(_animator);
-                }
-                else if (!_hover.Pass())
-                {
-                    _hover = oldHover;
-                }
-                else
-                {
-                    _circleAnimation.Reversed = false;
-                    _circleAnimation.Reset(_animator);
-                }
-            }
-            
-            if (this[Keys.Space])
-            {
-                Vector2 dir = (mouse - _ray.Location).Normalised();
-                
-                _ray.Direction = dir;
-                return;
-            }
+            _um.OnMouseDown(mouse, e.Button);
         }
+        protected override void OnMouseUp(MouseEventArgs e) => _um.OnMouseUp(e.Button);
+        protected override void OnMouseMove(MouseEventArgs e) => _um.OnMouseMove((e.Location - ViewPan) * _multiplier);
         
-        private Vector2 _mouseOld;
-        protected override void OnScroll(ScrollEventArgs e)
-        {
-            //ViewScale += e.DeltaY * 0.1d;
-            ZoomOnScreenPoint(MouseLocation, e.DeltaY);
-        }
-        private void ZoomOnScreenPoint(Vector2 point, double zoom)
-        {
-            double newZoom = ViewScale + (zoom * 0.1 * ViewScale);
-
-            if (newZoom < 0) { return; }
-
-            double oldZoom = ViewScale;
-            ViewScale = newZoom;
-
-            Vector2 pointRelOld = (point - ViewPan) / oldZoom;
-            Vector2 pointRelNew = (point - ViewPan) / newZoom;
-
-            ViewPan += (pointRelNew - pointRelOld) * newZoom;
-        }
-
         private Vector2 _renderScale = Vector2.One;
         private IMatrix Projection()
         {
