@@ -24,37 +24,32 @@ namespace Lasers
             set => _plain.PointB = value;
         }
         
-        public override QueryData QueryMouseSelect(Vector2 mousePos, double range)
+        public override QueryData QueryMousePos(Vector2 mousePos, double range)
         {
             range *= range;
             
             if (mousePos.SquaredDistance(PointA) < range)
             {
-                return new QueryData(0, PointA, _plain.Colour, _plain);
+                return new QueryData(0, PointA, this);
             }
             if (mousePos.SquaredDistance(PointB) < range)
             {
-                return new QueryData(1, PointB, _plain.Colour, _plain);
+                return new QueryData(1, PointB, this);
             }
             
             return QueryData.Fail;
         }
-        public override void MouseInteract(Vector2 mousePos, ref QueryData data)
+        public override void MouseInteract(Vector2 mousePos, QueryData data)
         {
-            data.Location = mousePos;
+            base.MouseInteract(mousePos, data);
             
-            if (data.Param == 0)
+            if (data.PointNumber == 0)
             {
                 PointA = mousePos;
                 return;
             }
             
             PointB = mousePos;
-        }
-
-        public override string ToString()
-        {
-            return $"{PointA}\n{PointB}";
         }
     }
 }

@@ -13,6 +13,7 @@ namespace Lasers
         
         protected readonly ILightInteractable[] Segments;
         
+        public double LastScrollOffset { get; private set; } = 0d;
         public int Length => Segments.Length;
         public ILightInteractable this[int index] => Segments[index];
         
@@ -24,26 +25,29 @@ namespace Lasers
             }
         }
         
-        public abstract QueryData QueryMouseSelect(Vector2 mousePos, double range);
-        public abstract void MouseInteract(Vector2 mousePos, ref QueryData data);
+        public abstract QueryData QueryMousePos(Vector2 mousePos, double range);
+        public virtual void MouseInteract(Vector2 mousePos, QueryData data)
+        {
+            LastScrollOffset = data.Scroll;
+        }
     }
     
     public struct QueryData
     {
-        public QueryData(int p, Vector2 l, ColourF3 c, ILightInteractable source)
+        public QueryData(int p, Vector2 l, LightObject source)
         {
-            Param = p;
+            PointNumber = p;
             Location = l;
-            Colour = c;
             Source = source;
+            Scroll = source.LastScrollOffset;
             Shift = false;
             Control = false;
         }
         
-        public int Param { get; }
-        public Vector2 Location { get; set; }
-        public ColourF3 Colour { get; set; }
-        public ILightInteractable Source { get; }
+        public int PointNumber { get; }
+        public Vector2 Location { get; }
+        public LightObject Source { get; }
+        public double Scroll { get; set; }
         
         public bool Shift { get; set; }
         public bool Control { get; set; }
@@ -54,9 +58,9 @@ namespace Lasers
         {
             return obj is QueryData data &&
                    Source == data.Source &&
-                   Param == data.Param;
+                   PointNumber == data.PointNumber;
         }
-        public override int GetHashCode() => HashCode.Combine(Param, Location, Colour, Source);
+        public override int GetHashCode() => HashCode.Combine(PointNumber, Location, Source);
 
         public static QueryData Fail { get; } = new QueryData();
         

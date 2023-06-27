@@ -16,7 +16,7 @@ namespace Lasers
             _engine = engine;
             _animator = animator;
             
-            handle.Scroll += OnSCroll;
+            handle.Scroll += OnScroll;
             
             _circleAnimation = new AnimatorData<double>((v) =>
             {
@@ -34,12 +34,13 @@ namespace Lasers
         private DisperseRays _ray;
         
         private const double _selectRange = 10d;
-        private QueryData _hover = QueryData.Fail;
-        private LightObject _select;
+        private QueryData _objHover = QueryData.Fail;
+        private bool _objSelect;
         private double _multiplier = 1d;
         private Vector2 _mouseOld;
         
         private double _hoverCircleSize = 0d;
+        private Vector2 _hoverPosition = Vector2.Zero;
         private AnimatorData<double> _circleAnimation;
         
         public void OnRender(DrawManager context, double multiplier)
@@ -50,28 +51,15 @@ namespace Lasers
             //if (_hover.Pass())
             if (_hoverCircleSize > 0d)
             {
-                context.DrawEllipse(new Box(_hover.Location, _hoverCircleSize * _multiplier), (ColourF)_hover.Colour);
+                context.DrawEllipse(new Box(_hoverPosition, _hoverCircleSize * _multiplier), ColourF.LightCyan);
             }
         }
         
         public void OnMouseDown(Vector2 mouse, MouseButton button)
         {
-            if (button == MouseButton.Left)
+            if (button == MouseButton.Left && _objHover.Source != null)
             {
-                double range = _selectRange * _multiplier;
-                
-                for (int i = 0; i < _engine.Objects.Count; i++)
-                {
-                    QueryData v = _engine.Objects[i].QueryMouseSelect(mouse, range);
-                    
-                    if (!v.Pass()) { continue; }
-                    
-                    _select = _engine.Objects[i];
-                    _hover = v;
-                    return;
-                }
-                
-                _select = null;
+                _objSelect = true;
                 return;
             }
         }
@@ -79,14 +67,13 @@ namespace Lasers
         {
             if (button == MouseButton.Left)
             {
-                _select = null;
+                _objSelect = false;
+                return;
             }
         }
         public void OnMouseMove(Vector2 mouse)
         {
-            _hover.Shift = _handle[Mods.Shift];
-            _hover.Control = _handle[Mods.Control];
-            
+            // Panning
             if (_handle[MouseButton.Middle])
             {
                 _handle.ViewPan += _handle.MouseLocation - _mouseOld;
@@ -97,55 +84,38 @@ namespace Lasers
                 _mouseOld = _handle.MouseLocation;
             }
             
-            if (_select != null)
-            {
-                _select.MouseInteract(mouse, ref _hover);
-                return;
-            }
-            
-            QueryData oldHover = _hover;
-            double range = _selectRange * _multiplier;
-            for (int i = 0; i < _engine.Objects.Count; i++)
-            {
-                _hover = _engine.Objects[i].QueryMouseSelect(mouse, range);
-                
-                if (!_hover.Pass()) { continue; }
-                
-                break;
-            }
-            if (oldHover != _hover)
-            {
-                _handle.CursorStyle = Cursor.Arrow;
-                
-                if (!_hover.Pass() && oldHover.Pass())
-                {
-                    _hover = new QueryData(1, oldHover.Location, oldHover.Colour, null);
-                    _circleAnimation.Reversed = true;
-                    _circleAnimation.Reset(_animator);
-                }
-                else if (!_hover.Pass())
-                {
-                    _hover = oldHover;
-                }
-                else
-                {
-                    _circleAnimation.Reversed = false;
-                    _circleAnimation.Reset(_animator);
-                    _handle.CursorStyle = Cursor.ResizeAll;
-                }
-            }
-            
+            // Ray direction tracking
             if (_handle[Keys.Space])
             {
                 Vector2 dir = (mouse - _ray.Location).Normalised();
                 
                 _ray.Direction = dir;
+            }
+            
+            // Selecting obj hover point
+            if (_objSelect)
+            {
+                _hoverPosition = mouse;
+                _objHover.Shift = _handle[Mods.Shift];
+                _objHover.Control = _handle[Mods.Control];
+                _objHover.Source.MouseInteract(mouse, _objHover);
                 return;
             }
+            
+            FindHovers(mouse);
         }
         
-        private void OnSCroll(object s, ScrollEventArgs e)
+        private void OnScroll(object s, ScrollEventArgs e)
         {
+            if (_objSelect)
+            {
+                _objHover.Scroll += e.DeltaY;
+                _objHover.Shift = _handle[Mods.Shift];
+                _objHover.Control = _handle[Mods.Control];
+                _objHover.Source.MouseInteract(_hoverPosition, _objHover);
+                return;
+            }
+            
             if (_handle[Mods.Control])
             {
                 _ray.Distance += e.DeltaY * _ray.Distance * 0.1;
@@ -168,6 +138,63 @@ namespace Lasers
             Vector2 pointRelNew = (point - _handle.ViewPan) / newZoom;
 
             _handle.ViewPan += (pointRelNew - pointRelOld) * newZoom;
+        }
+        
+        private void SelectObject(Vector2 mouse)
+        {
+            double range = _selectRange * _multiplier;
+            
+            for (int i = 0; i < _engine.Objects.Count; i++)
+            {
+                QueryData v = _engine.Objects[i].QueryMousePos(mouse, range);
+                
+                if (!v.Pass()) { continue; }
+                
+                _objHover = v;
+                _hoverPosition = v.Location;
+                return;
+            }
+            
+            _objHover = QueryData.Fail;
+        }
+        private void FindHovers(Vector2 mouse)
+        {
+            // Find obj hover point
+            QueryData oldHover = _objHover;
+            SelectObject(mouse);
+            if (oldHover != _objHover)
+            {
+                ManageNewHover(oldHover);
+            }
+            // Found hover object
+            if (_objHover.Pass()) { return; }
+            
+            // Found boundary hover point
+            BoundaryHover(mouse);
+        }
+        private void ManageNewHover(QueryData oldHover)
+        {
+            // New hover point - apply animation
+            if (_objHover.Pass())
+            {
+                _circleAnimation.Reversed = false;
+                _circleAnimation.Reset(_animator);
+                _handle.CursorStyle = Cursor.Hand;
+                return;
+            }
+            
+            _handle.CursorStyle = Cursor.Arrow;
+            
+            // Removed hover point - apply reversed animation
+            if (oldHover.Pass())
+            {
+                _circleAnimation.Reversed = true;
+                _circleAnimation.Reset(_animator);
+            }
+        }
+        private void BoundaryHover(Vector2 mouse)
+        {
+            
         }
     }
 }
