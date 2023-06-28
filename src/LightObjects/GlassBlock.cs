@@ -141,18 +141,14 @@ namespace Lasers
                 return;
             }
             
+            Line2 ac = new Line2(new Segment2(AB.PointA, CD.PointA));
+            bool b = ac.GetY(BC.PointA.X) > BC.PointA.Y;
+            bool d = ac.GetY(DA.PointA.X) > DA.PointA.Y;
+            
             Span<byte> index = stackalloc byte[6];
             
-            if (AB.PointA.SquaredDistance(CD.PointA) < BC.PointA.SquaredDistance(DA.PointA))
-            {
-                index[0] = 0;
-                index[1] = 1;
-                index[2] = 2;
-                index[3] = 2;
-                index[4] = 3;
-                index[5] = 0;
-            }
-            else
+            // On same side of ac line
+            if (b == d)
             {
                 index[0] = 1;
                 index[1] = 2;
@@ -160,6 +156,15 @@ namespace Lasers
                 index[3] = 3;
                 index[4] = 0;
                 index[5] = 1;
+            }
+            else
+            {
+                index[0] = 0;
+                index[1] = 1;
+                index[2] = 2;
+                index[3] = 2;
+                index[4] = 3;
+                index[5] = 0;
             }
             
             _drawable.SetData(stackalloc Vector2[]
