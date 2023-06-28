@@ -128,7 +128,7 @@ namespace Lasers
                 lines.Add(new LineData(pointA, ray.Line.Location, c, nc));
                 c = nc;
                 
-                if (dist <= 0d) { break; }
+                if (dist <= 0d || ray.Line.Direction == Vector2.Zero) { break; }
             }
         }
         private Line2 WallReflect(Line2 ray)

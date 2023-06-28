@@ -2,16 +2,16 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public class Mirror : LineObject
+    public class Mat : LineObject
     {
-        public Mirror(Vector2 a, Vector2 b)
+        public Mat(Vector2 a, Vector2 b)
             : base(1)
         {
-            _plain = new ReflectPlain(a, b);
+            _plain = new AbsorbPlain(a, b);
             Segments[0] = _plain;
         }
         
-        private ReflectPlain _plain;
+        private AbsorbPlain _plain;
         
         public override Vector2 PointA
         {

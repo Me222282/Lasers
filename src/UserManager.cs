@@ -168,6 +168,8 @@ namespace Lasers
             // Found hover object
             if (_objHover.Pass()) { return; }
             
+            HoverObject(mouse);
+            
             // Found boundary hover point
             BoundaryHover(mouse);
         }
@@ -194,6 +196,18 @@ namespace Lasers
         private void BoundaryHover(Vector2 mouse)
         {
             
+        }
+        private void HoverObject(Vector2 mouse)
+        {
+            for (int i = 0; i < _engine.Objects.Count; i++)
+            {
+                if (!_engine.Objects[i].MouseOverObject(mouse)) { continue; }
+                
+                _handle.CursorStyle = Cursor.IBeam;
+                return;
+            }
+            
+            _handle.CursorStyle = Cursor.Arrow;
         }
     }
 }

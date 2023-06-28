@@ -17,6 +17,8 @@ namespace Lasers
         public int Length => Segments.Length;
         public ILightInteractable this[int index] => Segments[index];
         
+        private Vector2 _lastMousePos;
+        
         public virtual void Render(LineDC context)
         {
             for (int i = 0 ; i < Segments.Length; i++)
@@ -25,10 +27,21 @@ namespace Lasers
             }
         }
         
+        protected abstract void AddOffset(Vector2 offset);
         public abstract QueryData QueryMousePos(Vector2 mousePos, double range);
         public virtual void MouseInteract(Vector2 mousePos, QueryData data)
         {
             LastScrollOffset = data.Scroll;
+        }
+        public virtual bool MouseOverObject(Vector2 mousePos)
+        {
+            _lastMousePos = mousePos;
+            return false;
+        }
+        public void SetObjPos(Vector2 pos)
+        {
+            AddOffset(pos - _lastMousePos);
+            _lastMousePos = pos;
         }
     }
     

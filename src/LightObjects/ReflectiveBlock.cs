@@ -3,28 +3,26 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public class GlassBlock : QuadObject
+    public class ReflectiveBlock : QuadObject
     {
-        public GlassBlock(Vector2 a, Vector2 b, Vector2 c, Vector2 d, double m)
-            : base(4, new ColourF(0.7f, 0.7f, 0.7f, 0.7f))
+        public ReflectiveBlock(Vector2 a, Vector2 b, Vector2 c, Vector2 d)
+            : base(4, ColourF.White, false)
         {
-            AB = new RefractPlain(a, b, m);
-            BC = new RefractPlain(b, c, m);
-            CD = new RefractPlain(c, d, m);
-            DA = new RefractPlain(d, a, m);
+            AB = new ReflectPlain(a, b);
+            BC = new ReflectPlain(b, c);
+            CD = new ReflectPlain(c, d);
+            DA = new ReflectPlain(d, a);
             
             Segments[0] = AB;
             Segments[1] = BC;
             Segments[2] = CD;
             Segments[3] = DA;
-            
-            SetData();
         }
         
-        private RefractPlain AB;
-        private RefractPlain BC;
-        private RefractPlain CD;
-        private RefractPlain DA;
+        private ReflectPlain AB;
+        private ReflectPlain BC;
+        private ReflectPlain CD;
+        private ReflectPlain DA;
         
         protected override  Vector2 _pointA
         {
@@ -60,17 +58,6 @@ namespace Lasers
             {
                 DA.PointA = value;
                 CD.PointB = value;
-            }
-        }
-        public double Medium
-        {
-            get => AB.Medium;
-            set
-            {
-                AB.Medium = value;
-                BC.Medium = value;
-                CD.Medium = value;
-                DA.Medium = value;
             }
         }
     }

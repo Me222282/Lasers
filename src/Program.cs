@@ -69,7 +69,7 @@ namespace Lasers
         
         //private RaySource _ray;
         private DisperseRays _ray;
-        private const int _objCOunt = 2;
+        private const int _objCOunt = 4;
         private double _multiplier = 1d;
         
         protected override void OnUpdate(EventArgs e)
@@ -213,11 +213,25 @@ namespace Lasers
             
             for (int i = 0; i < _objCOunt; i++)
             {
-                int type = r.Next(0, 2);
+                int type = r.Next(0, 4);
                 
                 if (type == 0)
                 {
                     _engine.Objects.Add(new Mirror(InBoundsPos(r), InBoundsPos(r)));
+                    continue;
+                }
+                if (type == 1)
+                {
+                    _engine.Objects.Add(new Mat(InBoundsPos(r), InBoundsPos(r)));
+                    continue;
+                }
+                if (type == 3)
+                {
+                    _engine.Objects.Add(new ReflectiveBlock(
+                        InBoundsPos(r),
+                        InBoundsPos(r),
+                        InBoundsPos(r),
+                        InBoundsPos(r)));
                     continue;
                 }
                 
