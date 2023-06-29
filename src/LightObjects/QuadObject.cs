@@ -97,8 +97,6 @@ namespace Lasers
             Segment2 cd = new Segment2(_pointC, _pointD);
             if (ab.Intersects(cd, out overlap))
             {
-                _tr0 = new Triangle(_pointB, PointA, overlap);
-                _tr1 = new Triangle(_pointD, PointC, PointA);
                 _context.Actions.Push(() => SetOverlapData(overlap, false));
                 return;
             }
@@ -107,8 +105,6 @@ namespace Lasers
             Segment2 da = new Segment2(_pointD, _pointA);
             if (bc.Intersects(da, out overlap))
             {
-                _tr0 = new Triangle(_pointD, PointA, overlap);
-                _tr1 = new Triangle(_pointC, PointB, overlap);
                 _context.Actions.Push(() => SetOverlapData(overlap, true));
                 return;
             }
@@ -116,17 +112,6 @@ namespace Lasers
             Line2 ac = new Line2(new Segment2(_pointA, _pointC));
             bool b = ac.GetY(_pointB.X) > _pointB.Y;
             bool d = ac.GetY(_pointD.X) > _pointD.Y;
-            
-            if (b == d)
-            {
-                _tr0 = new Triangle(_pointB, PointC, _pointD);
-                _tr1 = new Triangle(_pointD, PointA, _pointB);
-            }
-            else
-            {
-                _tr0 = new Triangle(_pointA, PointB, _pointC);
-                _tr1 = new Triangle(_pointC, PointD, _pointA);
-            }
             
             _context.Actions.Push(() =>
             {
@@ -330,7 +315,7 @@ namespace Lasers
             }
         }
         private void SetControl(int param, Vector2 mosue)
-        {
+        {   
             if (param == 0)
             {
                 Line2 cb = new Line2(new Segment2(_pointC, _pointB));
@@ -399,9 +384,24 @@ namespace Lasers
                 SetData();
             }
         }
-        
-        private Triangle _tr0;
-        private Triangle _tr1;
+        public override bool MouseOverObject(Vector2 mousePos)
+        {
+            base.MouseOverObject(mousePos);
+            
+            Segment2 cast = new Segment2(mousePos, new Vector2(mousePos.X + 1000_000d, mousePos.Y));
+            
+            int count = 0;
+            for (int i = 0; i < Segments.Length; i++)
+            {
+                if (double.IsInfinity(Segments[i].RayIntersection(cast).X))
+                {
+                    count++;
+                }
+            }
+            
+            return count % 2 == 1;
+        }
+
         protected override void AddOffset(Vector2 offset)
         {
             _pointA += offset;
@@ -409,48 +409,6 @@ namespace Lasers
             _pointC += offset;
             _pointD += offset;
             SetData();
-        }
-        public override bool MouseOverObject(Vector2 mousePos)
-        {
-            if (Filled)
-            {
-                return _tr0.ContainsPoint(mousePos) || _tr1.ContainsPoint(mousePos);
-            }
-            
-            return false;
-        }
-        
-        private struct Triangle
-        {
-            public Triangle(Vector2 a, Vector2 b, Vector2 c)
-            {
-                A = a;
-                B = b;
-                C = c;
-            }
-            
-            public Vector2 A;
-            public Vector2 B;
-            public Vector2 C;
-            
-            private double Sign(Vector2 p1, Vector2 p2, Vector2 p3)
-            {
-                return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
-            }
-            public bool ContainsPoint(Vector2 p)
-            {
-                double d1, d2, d3;
-                bool hasNeg, hasPos;
-
-                d1 = Sign(p, A, B);
-                d2 = Sign(p, B, C);
-                d3 = Sign(p, C, A);
-
-                hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-                hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-
-                return !(hasNeg && hasPos);
-            }
         }
     }
 }

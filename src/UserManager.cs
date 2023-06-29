@@ -33,13 +33,26 @@ namespace Lasers
         
         private const double _selectRange = 10d;
         private QueryData _objHover = QueryData.Fail;
-        private bool _objSelect;
+        private bool _objPointSelect = false;
+        private LightObject _moveObject = null;
+        private bool _isMoveObject = false;
         private double _multiplier = 1d;
         private Vector2 _mouseOld;
         
         private double _hoverCircleSize = 0d;
         private Vector2 _hoverPosition = Vector2.Zero;
         private AnimatorData<double> _circleAnimation;
+        
+        private Cursor CursorStyle
+        {
+            get => _handle.CursorStyle;
+            set
+            {
+                if (value == _handle.CursorStyle) { return; }
+                
+                _handle.CursorStyle = value;
+            }
+        }
         
         public void OnRender(DrawManager context, double multiplier)
         {
@@ -56,9 +69,18 @@ namespace Lasers
         
         public void OnMouseDown(Vector2 mouse, MouseButton button)
         {
-            if (button == MouseButton.Left && _objHover.Source != null)
+            if (button == MouseButton.Left)
             {
-                _objSelect = true;
+                if (_objHover.Source != null)
+                {
+                    _objPointSelect = true;
+                    return;
+                }
+                
+                if (_moveObject != null)
+                {
+                    _isMoveObject = true;
+                }
                 return;
             }
         }
@@ -66,7 +88,8 @@ namespace Lasers
         {
             if (button == MouseButton.Left)
             {
-                _objSelect = false;
+                _objPointSelect = false;
+                _isMoveObject = false;
                 return;
             }
         }
@@ -92,7 +115,7 @@ namespace Lasers
             }
             
             // Selecting obj hover point
-            if (_objSelect)
+            if (_objPointSelect)
             {
                 _hoverPosition = mouse;
                 _objHover.Shift = _handle[Mods.Shift];
@@ -101,12 +124,18 @@ namespace Lasers
                 return;
             }
             
+            if (_isMoveObject)
+            {
+                _moveObject.SetObjPos(mouse);
+                return;
+            }
+            
             FindHovers(mouse);
         }
         
         private void OnScroll(object s, ScrollEventArgs e)
         {
-            if (_objSelect)
+            if (_objPointSelect)
             {
                 _objHover.Scroll += e.DeltaY;
                 _objHover.Shift = _handle[Mods.Shift];
@@ -180,11 +209,11 @@ namespace Lasers
             {
                 _circleAnimation.Reversed = false;
                 _circleAnimation.Reset(_animator);
-                _handle.CursorStyle = Cursor.Hand;
+                CursorStyle = Cursor.Hand;
                 return;
             }
             
-            _handle.CursorStyle = Cursor.Arrow;
+            CursorStyle = Cursor.Arrow;
             
             // Removed hover point - apply reversed animation
             if (oldHover.Pass())
@@ -203,11 +232,13 @@ namespace Lasers
             {
                 if (!_engine.Objects[i].MouseOverObject(mouse)) { continue; }
                 
-                _handle.CursorStyle = Cursor.IBeam;
+                _moveObject = _engine.Objects[i];
+                CursorStyle = Cursor.ResizeAll;
                 return;
             }
             
-            _handle.CursorStyle = Cursor.Arrow;
+            CursorStyle = Cursor.Arrow;
+            _moveObject = null;
         }
     }
 }
