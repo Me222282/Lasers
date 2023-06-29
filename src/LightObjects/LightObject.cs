@@ -33,7 +33,7 @@ namespace Lasers
         {
             LastScrollOffset = data.Scroll;
         }
-        public virtual bool MouseOverObject(Vector2 mousePos)
+        public virtual bool MouseOverObject(Vector2 mousePos, double range)
         {
             _lastMousePos = mousePos;
             return false;

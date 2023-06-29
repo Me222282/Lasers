@@ -14,11 +14,11 @@ namespace Lasers
         public Vector2 PointA { get; set; }
         public Vector2 PointB { get; set; }
         
-        public ColourF3 Colour => ColourF3.LightGreen;
+        public ColourF3 Colour => ColourF3.IndianRed;
         
         public void Render(LineDC context)
         {
-            context.AddLine(new LineData(PointA, PointB, ColourF.LightGreen));
+            context.AddLine(new LineData(PointA, PointB, ColourF.IndianRed));
         }
         
         public Vector2 RayIntersection(Segment2 ray)

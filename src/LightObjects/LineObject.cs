@@ -46,5 +46,18 @@ namespace Lasers
             PointA += offset;
             PointB += offset;
         }
+        public override bool MouseOverObject(Vector2 mousePos, double range)
+        {
+            base.MouseOverObject(mousePos, range);
+            
+            Segment2 seg = new Segment2(PointA, PointB);
+            Vector2 dir = seg.Change;
+            dir = (Vector2)(-dir.Y, dir.X) * 1000d;
+            Segment2 perp = new Segment2(mousePos - dir, mousePos + dir);
+            
+            if (!seg.Intersects(perp, out Vector2 i)) { return false; }
+            
+            return mousePos.SquaredDistance(i) <= (range * range);
+        }
     }
 }

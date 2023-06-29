@@ -384,9 +384,9 @@ namespace Lasers
                 SetData();
             }
         }
-        public override bool MouseOverObject(Vector2 mousePos)
+        public override bool MouseOverObject(Vector2 mousePos, double range)
         {
-            base.MouseOverObject(mousePos);
+            base.MouseOverObject(mousePos, range);
             
             Segment2 cast = new Segment2(mousePos, new Vector2(mousePos.X + 1000_000d, mousePos.Y));
             

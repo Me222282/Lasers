@@ -230,7 +230,7 @@ namespace Lasers
         {
             for (int i = 0; i < _engine.Objects.Count; i++)
             {
-                if (!_engine.Objects[i].MouseOverObject(mouse)) { continue; }
+                if (!_engine.Objects[i].MouseOverObject(mouse, _selectRange * _multiplier)) { continue; }
                 
                 _moveObject = _engine.Objects[i];
                 CursorStyle = Cursor.ResizeAll;
