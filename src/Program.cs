@@ -80,6 +80,7 @@ namespace Lasers
             _animator.Invoke();
             
             _multiplier = _renderScale.X / (Size.X * 0.5d * ViewScale);
+            _context.Multiplier = _multiplier;
             _engine.RenderLights(_context);
         }
         private void OnRender(object sender, RenderArgs e)
@@ -214,7 +215,7 @@ namespace Lasers
             
             for (int i = 0; i < _objCOunt; i++)
             {
-                int type = r.Next(0, 4);
+                int type = r.Next(0, 5);
                 
                 if (type == 0)
                 {
@@ -224,6 +225,11 @@ namespace Lasers
                 if (type == 1)
                 {
                     _engine.Objects.Add(new Mat(InBoundsPos(r), InBoundsPos(r)));
+                    continue;
+                }
+                if (type == 2)
+                {
+                    _engine.Objects.Add(new ReflectiveCircle(InBoundsPos(r), r.NextDouble(0.05d, 1d)));
                     continue;
                 }
                 if (type == 3)

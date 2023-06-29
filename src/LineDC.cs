@@ -27,7 +27,9 @@ namespace Lasers
 
         int ICollection<LineData>.Count => _lines.Count;
         bool ICollection<LineData>.IsReadOnly => false;
-
+        
+        public double Multiplier { get; internal set; }
+        
         internal void RenderLines()
         {
             lock (_lines)
