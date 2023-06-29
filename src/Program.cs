@@ -39,7 +39,7 @@ namespace Lasers
             _spin = new AnimatorData<Radian>((v) =>
             {
                 _ray.Direction = (Math.Cos(v), Math.Sin(v));
-            }, 20d, 0d, Radian.Full)
+            }, 10d, 0d, Radian.Full)
             {
                 Looping = true
             };
@@ -54,11 +54,12 @@ namespace Lasers
         {
             Core.Init();
             
-            GUIWindow p = new GUIWindow(800, 500, "LIGHT");
-            p.AddChild(new Program());
-            p.RootElement.ShiftFocusRight();
+            GUIWindow gui = new GUIWindow(800, 500, "LIGHT");
+            Program p = new Program();
+            gui.AddChild(p);
+            gui.RootElement.Focus = p;
             //p.Run();
-            p.RunMultithread();
+            gui.RunMultithread();
             
             Core.Terminate();
         }
