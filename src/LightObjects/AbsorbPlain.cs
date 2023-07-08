@@ -21,7 +21,7 @@ namespace Lasers
             context.AddLine(new LineData(PointA, PointB, ColourF.IndianRed));
         }
         
-        public Vector2 RayIntersection(Segment2 ray)
+        public Vector2 RayIntersection(Segment2 ray, bool lastIntersect)
         {
             Segment2 seg = new Segment2(PointA, PointB);
             

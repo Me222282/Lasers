@@ -71,9 +71,9 @@ namespace Lasers
                     {
                         ILightInteractable current = lo[l];
                         
-                        if (current == lastHit) { continue; }
+                        bool isLastHit = current == lastHit;
                         
-                        Vector2 inter = current.RayIntersection(seg);
+                        Vector2 inter = current.RayIntersection(seg, isLastHit);
                         
                         // Intersection outside of bounds
                         if (ReflectiveBounds &&

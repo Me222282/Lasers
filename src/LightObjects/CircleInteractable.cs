@@ -23,7 +23,7 @@ namespace Lasers
             context.DrawRing(new Box(Location, Radius * 2d), 1d * context.Multiplier, (ColourF)Colour);
         }
         
-        public Vector2 RayIntersection(Segment2 ray)
+        public Vector2 RayIntersection(Segment2 ray, bool lastIntersect)
         {
             Vector2 change = ray.Change;
             Vector2 offset = ray.A - Location;
@@ -40,6 +40,7 @@ namespace Lasers
             }
             
             double t;
+            double T = 0d;
             
             if (discriminant == 0)
             {
@@ -55,14 +56,17 @@ namespace Lasers
                 if (t1 < 0d)
                 {
                     t = t2;
+                    T = t1;
                 }
                 else if (t2 < 0d)
                 {
                     t = t1;
+                    T = t2;
                 }
                 else
                 {
-                    t = t1 < t2 ? t1 : t2;
+                    t = Math.Min(t1, t2);
+                    T = Math.Max(t1, t2);
                 }
             }
             
@@ -71,7 +75,19 @@ namespace Lasers
                 return Vector2.PositiveInfinity;
             }
             
-            return ray.A + (t * change);
+            // No rereflect issues
+            if (!lastIntersect)
+            {
+                return ray.A + (t * change);
+            }
+            
+            if (T <= 0)
+            {
+                return ray.A + (t * change);
+            }
+            
+            // Use other intersection
+            return ray.A + (T * change);
         }
         
         public abstract Ray InteractRay(Ray ray, Vector2 refPoint);
