@@ -23,6 +23,8 @@ namespace Lasers
             context.DrawRing(new Box(Location, Radius * 2d), 1d * context.Multiplier, (ColourF)Colour);
         }
         
+        private const double _tolerance = 0.00001;
+        
         public Vector2 RayIntersection(Segment2 ray, bool lastIntersect)
         {
             Vector2 change = ray.Change;
@@ -81,7 +83,13 @@ namespace Lasers
                 return ray.A + (t * change);
             }
             
-            if (T <= 0)
+            // Heading away from circle centre - detection is a rereflect
+            if (offset.SquaredLength < Location.SquaredDistance(ray.A + (change * _tolerance * Radius / change.SquaredLength)))
+            {
+                return Vector2.PositiveInfinity;
+            }
+            
+            if (T <= 0d)
             {
                 return ray.A + (t * change);
             }
