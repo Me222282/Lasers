@@ -6,7 +6,7 @@ using Zene.Windowing;
 
 namespace Lasers
 {
-    public class UserManager : IBasicRenderer<double>
+    public class UserManager : IRenderable<double>
     {
         public UserManager(Element handle, LightingEngine engine, Animator animator)
         {
@@ -54,7 +54,7 @@ namespace Lasers
             }
         }
         
-        public void OnRender(DrawManager context, double multiplier)
+        public void OnRender(IDrawingContext context, double multiplier)
         {
             _multiplier = multiplier;
             

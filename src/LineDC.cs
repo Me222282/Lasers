@@ -6,13 +6,15 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public class LineDC : DrawManager, ICollection<LineData>
+    public class LineDC : DrawContext, ICollection<LineData>
     {
         public unsafe LineDC()
         {
             _shader = BasicShader.GetInstance();
             _buffer = new ArrayBuffer<LineData>(1, BufferUsage.DrawFrequent);
             _dl = new DrawingLines();
+            
+            RenderState = RenderState.BlendReady;
             
             // Vertices
             _dl.AddBuffer(_buffer, 0, 0, sizeof(LineData) / 2, DataType.Double, AttributeSize.D2);
