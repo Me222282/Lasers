@@ -41,13 +41,10 @@ namespace Lasers
         public Ray InteractRay(Ray ray, Vector2 refPoint)
         {
             Vector2 diff = PointA - PointB;
+            Line2 reflect = new Line2(diff.Rotated90(), refPoint);
+            Vector2 np = reflect.Reflect(ray.Line.Location);
             
-            Radian lineA = Math.Atan2(diff.Y, diff.X);
-            Radian dirA = Math.Atan2(ray.Line.Direction.Y, ray.Line.Direction.X);
-            
-            Radian newA = (lineA * 2d) - dirA;
-            
-            return new Ray(refPoint, (Math.Cos(newA), Math.Sin(newA)), ray);
+            return new Ray(refPoint, (np - refPoint).Normalised(), ray);
         }
     }
 }

@@ -48,19 +48,6 @@ namespace Lasers
         public Ray InteractRay(Ray ray, Vector2 refPoint)
         {
             Vector2 diff = PointA - PointB;
-            double m1 = ray.Medium;
-            double m2 = Medium;
-            List<double> mh = ray.MediumHistory;
-            
-            if (m1 == m2 && mh.Count > 1)
-            {
-                m1 = Medium;
-                m2 = mh[^2];
-            }
-            else
-            {
-                mh.Add(m2);
-            }
             
             Radian lineA = Math.Atan2(diff.Y, diff.X);
             if (lineA < 0)
@@ -71,38 +58,7 @@ namespace Lasers
             {
                 lineA -= Math.PI;
             }
-            Radian dirA = Math.Atan2(ray.Line.Direction.Y, ray.Line.Direction.X);
-            
-            Radian i = dirA - (lineA + HalfPI);
-            double sin = (m1 * Math.Sin(i)) / m2;
-            
-            // Total internal reflection
-            if (sin > 1d || sin < -1d)
-            {
-                Radian reflect = (lineA * 2d) - dirA;
-                
-                return new Ray(refPoint, (Math.Cos(reflect), Math.Sin(reflect)), ray);
-            }
-            // Apply after potential total internal reflection
-            if (m1 == Medium)
-            {
-                mh.RemoveAt(mh.Count - 1);
-            }
-            
-            Radian r = Math.Asin(sin);
-            Radian newA;
-            double cosI = Math.Cos(i);
-            if (cosI < 0)
-            {
-                newA = -r + lineA - HalfPI;
-            }
-            else
-            {
-                newA = r + lineA + HalfPI;
-            }
-            
-            //return new Ray(refPoint, (Math.Cos(newA), Math.Sin(newA)), ray);
-            return new Ray(refPoint, (Math.Cos(newA), Math.Sin(newA)), mh);
+            return Extensions.Refract(Medium, ray, refPoint, lineA);
         }
     }
 }

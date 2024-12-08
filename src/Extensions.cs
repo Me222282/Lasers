@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using Zene.Structs;
@@ -7,6 +8,9 @@ namespace Lasers
 {
     internal static class Extensions
     {
+        private const double HalfPI = Math.PI / 2d;
+        private const double TwoPI = Math.PI * 2d;
+        
         public static unsafe void Write<T>(this Stream stream, T value) where T : unmanaged
             => stream.Write(new ReadOnlySpan<byte>(&value, sizeof(T)));
 
@@ -66,6 +70,56 @@ namespace Lasers
             double d = s.A.SquaredDistance(s.B);
             
             return (n * n) / d;
+        }
+        
+        public static Ray Refract(double m, Ray ray, Vector2 refPoint, Radian lineA)
+        {
+            double m1 = ray.Medium;
+            double m2 = m;
+            List<double> mh = ray.MediumHistory;
+            
+            if (m1 == m2 && mh.Count > 1)
+            {
+                m1 = m;
+                m2 = mh[^2];
+            }
+            else
+            {
+                mh.Add(m2);
+            }
+            
+            Radian dirA = Math.Atan2(ray.Line.Direction.Y, ray.Line.Direction.X);
+            
+            Radian i = dirA - (lineA + HalfPI);
+            double sin = (m1 * Math.Sin(i)) / m2;
+            
+            // Total internal reflection
+            if (sin > 1d || sin < -1d)
+            {
+                Radian reflect = (lineA * 2d) - dirA;
+                
+                return new Ray(refPoint, (Math.Cos(reflect), Math.Sin(reflect)), ray);
+            }
+            // Apply after potential total internal reflection
+            if (m1 == m)
+            {
+                mh.RemoveAt(mh.Count - 1);
+            }
+            
+            Radian r = Math.Asin(sin);
+            Radian newA;
+            double cosI = Math.Cos(i);
+            if (cosI < 0)
+            {
+                newA = -r + lineA - HalfPI;
+            }
+            else
+            {
+                newA = r + lineA + HalfPI;
+            }
+            
+            //return new Ray(refPoint, (Math.Cos(newA), Math.Sin(newA)), ray);
+            return new Ray(refPoint, (Math.Cos(newA), Math.Sin(newA)), mh);
         }
     }
 }

@@ -17,10 +17,11 @@ namespace Lasers
         public double Radius { get; set; }
         
         public ColourF3 Colour { get; set; }
+        public ColourF InnerColour { get; set; }
         
         public virtual void Render(LineDC context)
         {
-            context.DrawRing(new Box(Location, Radius * 2d), 1d * context.Multiplier, (ColourF)Colour);
+            context.DrawRing(new Box(Location, Radius * 2d), 1d * context.Multiplier, (ColourF)Colour, InnerColour);
         }
         
         private const double _tolerance = 0.00001;
