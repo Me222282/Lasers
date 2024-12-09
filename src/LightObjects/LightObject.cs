@@ -33,10 +33,25 @@ namespace Lasers
         {
             LastScrollOffset = data.Scroll;
         }
-        public virtual bool MouseOverObject(Vector2 mousePos, double range)
+        public bool MouseOverObject(Vector2 mousePos, double range)
         {
             _lastMousePos = mousePos;
-            return false;
+            return IsMouseOverObject(mousePos, range);
+        }
+        protected virtual bool IsMouseOverObject(Vector2 mousePos, double range)
+        {
+            Segment2 cast = new Segment2(mousePos, new Vector2(mousePos.X + 1000_000d, mousePos.Y));
+            
+            int count = 0;
+            for (int i = 0; i < Segments.Length; i++)
+            {
+                if (!double.IsInfinity(Segments[i].RayIntersection(cast).X))
+                {
+                    count++;
+                }
+            }
+            
+            return count % 2 == 1;
         }
         public void SetObjPos(Vector2 pos)
         {

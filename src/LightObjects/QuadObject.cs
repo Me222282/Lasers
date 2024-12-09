@@ -6,8 +6,8 @@ namespace Lasers
 {
     public abstract class QuadObject : LightObject
     {
-        public QuadObject(int count, ColourF colour, bool filled = true)
-            : base(count)
+        public QuadObject(ColourF colour, bool filled = true)
+            : base(4)
         {
             if (filled)
             {
@@ -384,24 +384,7 @@ namespace Lasers
                 SetData();
             }
         }
-        public override bool MouseOverObject(Vector2 mousePos, double range)
-        {
-            base.MouseOverObject(mousePos, range);
-            
-            Segment2 cast = new Segment2(mousePos, new Vector2(mousePos.X + 1000_000d, mousePos.Y));
-            
-            int count = 0;
-            for (int i = 0; i < Segments.Length; i++)
-            {
-                if (double.IsInfinity(Segments[i].RayIntersection(cast).X))
-                {
-                    count++;
-                }
-            }
-            
-            return count % 2 == 1;
-        }
-
+        
         protected override void AddOffset(Vector2 offset)
         {
             _pointA += offset;

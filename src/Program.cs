@@ -215,7 +215,7 @@ namespace Lasers
             
             for (int i = 0; i < _objCOunt; i++)
             {
-                int type = r.Next(0, 6);
+                int type = r.Next(0, 8);
                 
                 if (type == 0)
                 {
@@ -241,6 +241,23 @@ namespace Lasers
                     continue;
                 }
                 if (type == 4)
+                {
+                    _engine.Objects.Add(new ReflectivePrism(
+                        InBoundsPos(r),
+                        InBoundsPos(r),
+                        InBoundsPos(r)));
+                    continue;
+                }
+                if (type == 5)
+                {
+                    _engine.Objects.Add(new GlassPrism(
+                        InBoundsPos(r),
+                        InBoundsPos(r),
+                        InBoundsPos(r),
+                        r.NextDouble(0.5d, 2d)));
+                    continue;
+                }
+                if (type == 6)
                 {
                     _engine.Objects.Add(new ReflectiveBlock(
                         InBoundsPos(r),

@@ -6,7 +6,7 @@ namespace Lasers
     public class ReflectiveBlock : QuadObject
     {
         public ReflectiveBlock(Vector2 a, Vector2 b, Vector2 c, Vector2 d)
-            : base(4, ColourF.White, false)
+            : base(ColourF.White, false)
         {
             AB = new ReflectPlain(a, b);
             BC = new ReflectPlain(b, c);

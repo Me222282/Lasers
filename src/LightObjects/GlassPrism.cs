@@ -1,30 +1,26 @@
-using System;
 using Zene.Structs;
 
 namespace Lasers
 {
-    public class GlassBlock : QuadObject
+    public class GlassPrism : TriObject
     {
-        public GlassBlock(Vector2 a, Vector2 b, Vector2 c, Vector2 d, double m)
+        public GlassPrism(Vector2 a, Vector2 b, Vector2 c, double m)
             : base(new ColourF(0.7f, 0.7f, 0.7f, 0.7f))
         {
             AB = new RefractPlain(a, b, m);
             BC = new RefractPlain(b, c, m);
-            CD = new RefractPlain(c, d, m);
-            DA = new RefractPlain(d, a, m);
+            CA = new RefractPlain(c, a, m);
             
             Segments[0] = AB;
             Segments[1] = BC;
-            Segments[2] = CD;
-            Segments[3] = DA;
+            Segments[2] = CA;
             
             SetData();
         }
         
         private RefractPlain AB;
         private RefractPlain BC;
-        private RefractPlain CD;
-        private RefractPlain DA;
+        private RefractPlain CA;
         
         protected override  Vector2 _pointA
         {
@@ -32,7 +28,7 @@ namespace Lasers
             set
             {
                 AB.PointA = value;
-                DA.PointB = value;
+                CA.PointB = value;
             }
         }
         protected override  Vector2 _pointB
@@ -46,20 +42,11 @@ namespace Lasers
         }
         protected override  Vector2 _pointC
         {
-            get => CD.PointA;
+            get => CA.PointA;
             set
             {
-                CD.PointA = value;
+                CA.PointA = value;
                 BC.PointB = value;
-            }
-        }
-        protected override Vector2 _pointD
-        {
-            get => DA.PointA;
-            set
-            {
-                DA.PointA = value;
-                CD.PointB = value;
             }
         }
         public double Medium
@@ -69,8 +56,7 @@ namespace Lasers
             {
                 AB.Medium = value;
                 BC.Medium = value;
-                CD.Medium = value;
-                DA.Medium = value;
+                CA.Medium = value;
             }
         }
     }
