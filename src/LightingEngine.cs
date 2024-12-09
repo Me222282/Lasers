@@ -55,6 +55,9 @@ namespace Lasers
             
             ColourF c = new ColourF(colour, 1f);
             ColourF end = new ColourF(colour, 0f);
+            ColourF oldC = c;
+            
+            double totalDist = dist;
             
             while (true)
             {
@@ -107,7 +110,7 @@ namespace Lasers
                         seg.B.Y <= Bounds.Top &&
                         seg.B.Y >= Bounds.Bottom))
                     {
-                        lines.Add(new LineData(ray.Line.Location, seg.B, c, end));
+                        lines.Add(new LineData(ray.Line.Location, seg.B, oldC, end));
                         break;
                     }
                     
@@ -124,9 +127,10 @@ namespace Lasers
                 double oldDist = dist;
                 dist -= Math.Sqrt(closeDist);
                 
-                ColourF nc = end.Lerp(c, (float)(dist / oldDist));
-                lines.Add(new LineData(pointA, ray.Line.Location, c, nc));
-                c = nc;
+                ColourF nc = c.Lerp(end, (float)(dist / totalDist));
+                // ColourF nc = c.Lerp(end, (float)Exp(dist / totalDist));
+                lines.Add(new LineData(pointA, ray.Line.Location, oldC, nc));
+                oldC = nc;
                 
                 if (dist <= 0d || ray.Line.Direction == Vector2.Zero) { break; }
             }
@@ -174,5 +178,10 @@ namespace Lasers
                 (ray.GetX(yp), yp)
             );
         }
+        
+        // private double _curvature = 5d;
+        // private double _coefficient = 1d / (1d - Math.Exp(-5d));
+        // private double Exp(double x)
+        //     => (1 - Math.Exp(-_curvature * x)) * _coefficient;
     }
 }

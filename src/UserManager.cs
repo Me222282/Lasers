@@ -15,6 +15,8 @@ namespace Lasers
             _animator = animator;
             
             handle.Scroll += OnScroll;
+            handle.KeyDown += OnKeyDown;
+            handle.KeyUp += OnKeyUp;
             
             _circleAnimation = new AnimatorData<double>((v) =>
             {
@@ -38,6 +40,7 @@ namespace Lasers
         private bool _isMoveObject = false;
         private double _multiplier = 1d;
         private Vector2 _mouseOld;
+        private Vector2 _m;
         
         private double _hoverCircleSize = 0d;
         private Vector2 _hoverPosition = Vector2.Zero;
@@ -95,6 +98,8 @@ namespace Lasers
         }
         public void OnMouseMove(Vector2 mouse)
         {
+            _m = mouse;
+            
             // Panning
             if (_handle[MouseButton.Middle])
             {
@@ -168,6 +173,32 @@ namespace Lasers
             _handle.ViewPan += (pointRelNew - pointRelOld) * newZoom;
         }
         
+        private bool _alt = false;
+        private void OnKeyDown(object s, KeyEventArgs e)
+        {
+            if (e[Keys.LeftAlt] || e[Keys.RightAlt])
+            {
+                _objHover = QueryData.Fail;
+                if (_hoverCircleSize > 0d &&
+                    (!_circleAnimation.Animating ||
+                    !_circleAnimation.Reversed))
+                {
+                    _circleAnimation.Reversed = true;
+                    _circleAnimation.Reset(_animator);
+                }
+                _alt = true;
+                FindHovers(_m);
+            }
+        }
+        private void OnKeyUp(object s, KeyEventArgs e)
+        {
+            if (e[Keys.LeftAlt] || e[Keys.RightAlt])
+            {
+                _alt = false;
+                FindHovers(_m);
+            }
+        }
+        
         private void SelectObject(Vector2 mouse)
         {
             double range = _selectRange * _multiplier;
@@ -187,6 +218,11 @@ namespace Lasers
         }
         private void FindHovers(Vector2 mouse)
         {
+            if (_alt)
+            {
+                goto SkipPointHovers;
+            }
+            
             // Find obj hover point
             QueryData oldHover = _objHover;
             SelectObject(mouse);
@@ -197,6 +233,7 @@ namespace Lasers
             // Found hover object
             if (_objHover.Pass()) { return; }
             
+        SkipPointHovers:
             HoverObject(mouse);
             
             // Found boundary hover point
