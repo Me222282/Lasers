@@ -16,6 +16,7 @@ namespace Lasers
         public double LastScrollOffset { get; private set; } = 0d;
         public int Length => Segments.Length;
         public ILightInteractable this[int index] => Segments[index];
+        public virtual double Medium { get; set; } = -1d;
         
         private Vector2 _lastMousePos;
         
@@ -38,7 +39,7 @@ namespace Lasers
             _lastMousePos = mousePos;
             return IsMouseOverObject(mousePos, range);
         }
-        protected virtual bool IsMouseOverObject(Vector2 mousePos, double range)
+        protected internal virtual bool IsMouseOverObject(Vector2 mousePos, double range)
         {
             Segment2 cast = new Segment2(mousePos, new Vector2(mousePos.X + 1000_000d, mousePos.Y));
             

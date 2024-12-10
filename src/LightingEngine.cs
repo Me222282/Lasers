@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Zene.Structs;
 
@@ -21,6 +22,7 @@ namespace Lasers
         
         public Box Bounds { get; set; } = Box.One;
         public bool ReflectiveBounds { get; set; } = true;
+        public double AirMedium { get; set; } = 1d;
         
         public void RenderLights(LineDC context)
         {
@@ -36,8 +38,8 @@ namespace Lasers
             
             Parallel.ForEach(directions, (d) =>
             {
-                List<double> mh = new List<double>(){ 1d };
-                Ray ray = new Ray(source.Location, d, mh);
+                double m = GetMedium(source.Location, null);
+                Ray ray = new Ray(source.Location, d, m);
                 CalculateRay(ray, source.Distance, source.Colour, lines);
             });
             /*
@@ -116,19 +118,19 @@ namespace Lasers
                     
                     // Reflect off walls
                     Line2 line = WallReflect(ray.Line);
-                    ray = new Ray(line, ray);
+                    ray = new Ray(line, ray.Medium);
                     closeDist = pointA.SquaredDistance(ray.Line.Location);
                 }
                 else
                 {
-                    ray = hit.InteractRay(ray, intersection);
+                    ray = hit.InteractRay(this, ray, intersection);
                 }
                 
                 double oldDist = dist;
                 dist -= Math.Sqrt(closeDist);
                 
-                ColourF nc = c.Lerp(end, (float)(dist / totalDist));
-                // ColourF nc = c.Lerp(end, (float)Exp(dist / totalDist));
+                ColourF nc = end.Lerp(c, (float)(dist / totalDist));
+                // ColourF nc = end.Lerp(c, (float)Exp(dist / totalDist));
                 lines.Add(new LineData(pointA, ray.Line.Location, oldC, nc));
                 oldC = nc;
                 
@@ -177,6 +179,25 @@ namespace Lasers
                 ),
                 (ray.GetX(yp), yp)
             );
+        }
+        
+        public double GetMedium(Vector2 point, LightObject ignore)
+        {
+            ReadOnlySpan<LightObject> span = CollectionsMarshal.AsSpan(Objects);
+            for (int i = 0; i < span.Length; i++)
+            {
+                LightObject lo = span[i];
+                if (lo == ignore || lo.Medium == -1 ||
+                // Test
+                    !lo.IsMouseOverObject(point, 0d))
+                {
+                    continue;
+                }
+                
+                return lo.Medium;
+            }
+            
+            return AirMedium;
         }
         
         // private double _curvature = 5d;

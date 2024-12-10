@@ -72,21 +72,9 @@ namespace Lasers
             return (n * n) / d;
         }
         
-        public static Ray Refract(double m, Ray ray, Vector2 refPoint, Radian lineA)
+        public static Ray Refract(double m2, Ray ray, Vector2 refPoint, Radian lineA)
         {
             double m1 = ray.Medium;
-            double m2 = m;
-            List<double> mh = ray.MediumHistory;
-            
-            if (m1 == m2 && mh.Count > 1)
-            {
-                m1 = m;
-                m2 = mh[^2];
-            }
-            else
-            {
-                mh.Add(m2);
-            }
             
             Radian dirA = Math.Atan2(ray.Line.Direction.Y, ray.Line.Direction.X);
             
@@ -98,12 +86,7 @@ namespace Lasers
             {
                 Radian reflect = (lineA * 2d) - dirA;
                 
-                return new Ray(refPoint, (Math.Cos(reflect), Math.Sin(reflect)), ray);
-            }
-            // Apply after potential total internal reflection
-            if (m1 == m)
-            {
-                mh.RemoveAt(mh.Count - 1);
+                return new Ray(refPoint, (Math.Cos(reflect), Math.Sin(reflect)), m2);
             }
             
             Radian r = Math.Asin(sin);
@@ -119,7 +102,7 @@ namespace Lasers
             }
             
             //return new Ray(refPoint, (Math.Cos(newA), Math.Sin(newA)), ray);
-            return new Ray(refPoint, (Math.Cos(newA), Math.Sin(newA)), mh);
+            return new Ray(refPoint, (Math.Cos(newA), Math.Sin(newA)), m2);
         }
     }
 }

@@ -33,9 +33,9 @@ namespace Lasers
             return Vector2.PositiveInfinity;
         }
         
-        public Ray InteractRay(Ray ray, Vector2 refPoint)
+        public Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
         {
-            return new Ray(refPoint, Vector2.Zero, ray.MediumHistory);
+            return new Ray(refPoint, Vector2.Zero, ray.Medium);
         }
     }
 }

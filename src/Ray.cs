@@ -5,29 +5,18 @@ namespace Lasers
 {
     public struct Ray
     {
-        public Ray(Line2 line, List<double> mh)
-        {
-            Line = line;
-            MediumHistory = mh;
-        }
-        public Ray(Line2 line, Ray source)
+        public Ray(Line2 line, double medium)
         {   
             Line = line;
-            MediumHistory = source.MediumHistory;
+            Medium = medium;
         }
-        public Ray(Vector2 point, Vector2 dir, List<double> mh)
+        public Ray(Vector2 point, Vector2 dir, double medium)
         {   
             Line = new Line2(dir, point);
-            MediumHistory = mh;
-        }
-        public Ray(Vector2 point, Vector2 dir, Ray source)
-        {   
-            Line = new Line2(dir, point);
-            MediumHistory = source.MediumHistory;
+            Medium = medium;
         }
         
         public Line2 Line { get; }
-        public double Medium => MediumHistory[^1];
-        public List<double> MediumHistory { get; }
+        public double Medium { get; }
     }
 }

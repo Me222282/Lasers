@@ -38,13 +38,13 @@ namespace Lasers
             return Vector2.PositiveInfinity;
         }
         
-        public Ray InteractRay(Ray ray, Vector2 refPoint)
+        public Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
         {
             Vector2 diff = PointA - PointB;
             Line2 reflect = new Line2(diff.Rotated90(), refPoint);
             Vector2 np = reflect.Reflect(ray.Line.Location);
             
-            return new Ray(refPoint, (np - refPoint).Normalised(), ray);
+            return new Ray(refPoint, (np - refPoint).Normalised(), ray.Medium);
         }
     }
 }

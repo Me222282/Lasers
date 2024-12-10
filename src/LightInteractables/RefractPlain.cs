@@ -6,12 +6,16 @@ namespace Lasers
 {
     public class RefractPlain : ILightInteractable
     {
-        public RefractPlain(Vector2 a, Vector2 b, double m)
+        public RefractPlain(Vector2 a, Vector2 b, double m, LightObject obj)
         {
             PointA = a;
             PointB = b;
             Medium = m;
+            
+            _obj = obj;
         }
+        
+        private LightObject _obj;
         
         public Vector2 PointA { get; set; }
         public Vector2 PointB { get; set; }
@@ -45,7 +49,7 @@ namespace Lasers
         private const double HalfPI = Math.PI / 2d;
         private const double TwoPI = Math.PI * 2d;
         
-        public Ray InteractRay(Ray ray, Vector2 refPoint)
+        public Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
         {
             Vector2 diff = PointA - PointB;
             
@@ -58,7 +62,13 @@ namespace Lasers
             {
                 lineA -= Math.PI;
             }
-            return Extensions.Refract(Medium, ray, refPoint, lineA);
+            double m = Medium;
+            if (ray.Medium == m)
+            {
+                m = engine.GetMedium(refPoint, _obj);
+            }
+            
+            return Extensions.Refract(m, ray, refPoint, lineA);
         }
     }
 }

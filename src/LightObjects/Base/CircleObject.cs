@@ -50,7 +50,7 @@ namespace Lasers
         }
         
         protected override void AddOffset(Vector2 offset) => Inter.Location += offset;
-        protected override bool IsMouseOverObject(Vector2 mousePos, double range)
+        protected internal override bool IsMouseOverObject(Vector2 mousePos, double range)
         {
             double dist = mousePos.SquaredDistance(Inter.Location);
             double r2 = Inter.Radius * Inter.Radius;

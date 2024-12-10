@@ -46,7 +46,7 @@ namespace Lasers
             PointA += offset;
             PointB += offset;
         }
-        protected override bool IsMouseOverObject(Vector2 mousePos, double range)
+        protected internal override bool IsMouseOverObject(Vector2 mousePos, double range)
         {
             Segment2 seg = new Segment2(PointA, PointB);
             Vector2 dir = seg.Change;

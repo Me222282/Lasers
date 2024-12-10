@@ -7,9 +7,9 @@ namespace Lasers
         public GlassPrism(Vector2 a, Vector2 b, Vector2 c, double m)
             : base(new ColourF(0.7f, 0.7f, 0.7f, 0.7f))
         {
-            AB = new RefractPlain(a, b, m);
-            BC = new RefractPlain(b, c, m);
-            CA = new RefractPlain(c, a, m);
+            AB = new RefractPlain(a, b, m, this);
+            BC = new RefractPlain(b, c, m, this);
+            CA = new RefractPlain(c, a, m, this);
             
             Segments[0] = AB;
             Segments[1] = BC;
@@ -49,7 +49,7 @@ namespace Lasers
                 BC.PointB = value;
             }
         }
-        public double Medium
+        public override double Medium
         {
             get => AB.Medium;
             set

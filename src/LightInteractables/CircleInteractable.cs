@@ -99,6 +99,6 @@ namespace Lasers
             return ray.A + (T * change);
         }
         
-        public abstract Ray InteractRay(Ray ray, Vector2 refPoint);
+        public abstract Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint);
     }
 }

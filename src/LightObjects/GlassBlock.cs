@@ -8,10 +8,10 @@ namespace Lasers
         public GlassBlock(Vector2 a, Vector2 b, Vector2 c, Vector2 d, double m)
             : base(new ColourF(0.7f, 0.7f, 0.7f, 0.7f))
         {
-            AB = new RefractPlain(a, b, m);
-            BC = new RefractPlain(b, c, m);
-            CD = new RefractPlain(c, d, m);
-            DA = new RefractPlain(d, a, m);
+            AB = new RefractPlain(a, b, m, this);
+            BC = new RefractPlain(b, c, m, this);
+            CD = new RefractPlain(c, d, m, this);
+            DA = new RefractPlain(d, a, m, this);
             
             Segments[0] = AB;
             Segments[1] = BC;
@@ -62,7 +62,7 @@ namespace Lasers
                 CD.PointB = value;
             }
         }
-        public double Medium
+        public override double Medium
         {
             get => AB.Medium;
             set
