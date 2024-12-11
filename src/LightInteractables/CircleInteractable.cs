@@ -21,7 +21,7 @@ namespace Lasers
         
         public virtual void Render(LineDC context)
         {
-            context.DrawRing(new Box(Location, Radius * 2d), 1d * context.Multiplier, (ColourF)Colour, InnerColour);
+            context.DrawBorderEllipse(new Box(Location, Radius * 2d), 1d * context.Multiplier, InnerColour, (ColourF)Colour);
         }
         
         private const double _tolerance = 0.00001;

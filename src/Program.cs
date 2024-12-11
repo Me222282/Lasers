@@ -213,6 +213,8 @@ namespace Lasers
             Random r = new Random();
             _engine.Objects.Clear();
             
+            _engine.Objects.Add(new MirrorArc(InBoundsPos(r), InBoundsPos(r), 0.2));
+            
             for (int i = 0; i < _objCOunt; i++)
             {
                 int type = r.Next(0, 8);
