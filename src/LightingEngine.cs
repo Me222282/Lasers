@@ -83,7 +83,7 @@ namespace Lasers
                         
                         bool isLastHit = current == lastHit;
                         
-                        Vector2 inter = current.RayIntersection(new RayArgs(seg, lastSeg, isLastHit));
+                        Vector2 inter = current.RayIntersection(new RayArgs(seg, /*lastSeg,*/ isLastHit));
                         
                         // Intersection outside of bounds
                         if (ReflectiveBounds &&

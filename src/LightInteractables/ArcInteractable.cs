@@ -241,7 +241,7 @@ namespace Lasers
                 return Vector2.PositiveInfinity;
             }
             
-            bool inside = (ray.A - _centre).Dot(args.LastRay.Change) > 0d;
+            bool inside = (ray.A - _centre).Dot(ray.Change) < 0d;
             
             // heading away or there are 2 points
             if (!inside || T > 0d)

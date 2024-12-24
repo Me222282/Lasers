@@ -8,17 +8,17 @@ namespace Lasers
         {
             Ray = ray;
             LastIntersect = li;
-            LastRay = new Segment2(0d, 0d);
+            // LastRay = new Segment2(0d, 0d);
         }
-        public RayArgs(Segment2 ray, Segment2 last, bool li = false)
-        {
-            Ray = ray;
-            LastIntersect = li;
-            LastRay = last;
-        }
+        // public RayArgs(Segment2 ray, Segment2 last, bool li = false)
+        // {
+        //     Ray = ray;
+        //     LastIntersect = li;
+        //     LastRay = last;
+        // }
         
         public Segment2 Ray;
         public bool LastIntersect;
-        public Segment2 LastRay;
+        //public Segment2 LastRay;
     }
 }

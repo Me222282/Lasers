@@ -88,7 +88,7 @@ namespace Lasers
                 return p;
             }
             
-            bool inside = (ray.A - Location).Dot(args.LastRay.Change) > 0d;
+            bool inside = (ray.A - Location).Dot(ray.Change) < 0d;
             
             // heading away or there are 2 points
             if (!inside || T > 0d)
