@@ -220,38 +220,39 @@ namespace Lasers
             
             return QueryData.Fail;
         }
-        public override void MouseInteract(Vector2 mousePos, QueryData data)
+        public override Vector2 MouseInteract(Vector2 mousePos, QueryData data)
         {
             base.MouseInteract(mousePos, data);
             
             if (data.Shift)
             {
                 SetShift(data.PointNumber, mousePos, data.Scroll);
-                return;
+                return mousePos;
             }
             if (data.Control)
             {
                 SetControl(data.PointNumber, mousePos);
-                return;
+                return mousePos;
             }
             
             if (data.PointNumber == 0)
             {
                 PointA = mousePos;
-                return;
+                return mousePos;
             }
             if (data.PointNumber == 1)
             {
                 PointB = mousePos;
-                return;
+                return mousePos;
             }
             if (data.PointNumber == 2)
             {
                 PointC = mousePos;
-                return;
+                return mousePos;
             }
             
             PointD = mousePos;
+            return mousePos;
         }
         private void SetShift(int param, Vector2 mouse, double scroll)
         {

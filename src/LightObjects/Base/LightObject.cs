@@ -30,9 +30,10 @@ namespace Lasers
         
         protected abstract void AddOffset(Vector2 offset);
         public abstract QueryData QueryMousePos(Vector2 mousePos, double range);
-        public virtual void MouseInteract(Vector2 mousePos, QueryData data)
+        public virtual Vector2 MouseInteract(Vector2 mousePos, QueryData data)
         {
             LastScrollOffset = data.Scroll;
+            return mousePos;
         }
         public bool MouseOverObject(Vector2 mousePos, double range)
         {

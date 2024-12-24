@@ -28,17 +28,18 @@ namespace Lasers
             
             return QueryData.Fail;
         }
-        public override void MouseInteract(Vector2 mousePos, QueryData data)
+        public override Vector2 MouseInteract(Vector2 mousePos, QueryData data)
         {
             base.MouseInteract(mousePos, data);
             
             if (data.PointNumber == 0)
             {
                 PointA = mousePos;
-                return;
+                return mousePos;
             }
             
             PointB = mousePos;
+            return mousePos;
         }
         
         protected override void AddOffset(Vector2 offset)

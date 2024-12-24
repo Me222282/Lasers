@@ -122,10 +122,10 @@ namespace Lasers
             // Selecting obj hover point
             if (_objPointSelect)
             {
-                _hoverPosition = mouse;
                 _objHover.Shift = _handle[Mods.Shift];
                 _objHover.Control = _handle[Mods.Control];
-                _objHover.Source.MouseInteract(mouse, _objHover);
+                Vector2 hp = _objHover.Source.MouseInteract(mouse, _objHover);
+                _hoverPosition = hp;
                 return;
             }
             

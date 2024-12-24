@@ -49,6 +49,10 @@ namespace Lasers
         private double _radius;
         private double _length;
         
+        public Vector2 Centre => _centre;
+        public double Rad => _radius;
+        public Vector2 CP { get; private set; }
+        
         public ColourF3 Colour => ColourF3.White;
         public ColourF InnerColour { get; set; }
         
@@ -114,6 +118,7 @@ namespace Lasers
             Vector2 dir = t.Rotated270();
             Vector2 cp = mid + (dir * _c);
             double r = _c / (2d - (t.SquaredLength / (2d * cp.SquaredDistance(_a))));
+            CP = cp;
             
             _centre = cp - (r * dir);
             
@@ -121,7 +126,7 @@ namespace Lasers
             _radius = r * _length;
         }
         
-        private bool InSector(Vector2 v)
+        public bool InSector(Vector2 v)
         {
             Vector2 cv = v - _centre;
             Vector2 ca = _a - _centre;

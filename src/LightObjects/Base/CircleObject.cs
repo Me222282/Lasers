@@ -42,11 +42,12 @@ namespace Lasers
             
             return new QueryData(0, Inter.Location + diff, this);
         }
-        public override void MouseInteract(Vector2 mousePos, QueryData data)
+        public override Vector2 MouseInteract(Vector2 mousePos, QueryData data)
         {
             base.MouseInteract(mousePos, data);
             
             Inter.Radius = Inter.Location.Distance(mousePos);
+            return mousePos;
         }
         
         protected override void AddOffset(Vector2 offset) => Inter.Location += offset;
