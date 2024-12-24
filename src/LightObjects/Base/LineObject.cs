@@ -42,12 +42,12 @@ namespace Lasers
             return mousePos;
         }
         
-        protected override void AddOffset(Vector2 offset)
+        public override void OffsetObjPos(Vector2 offset)
         {
             PointA += offset;
             PointB += offset;
         }
-        protected internal override bool IsMouseOverObject(Vector2 mousePos, double range)
+        public override bool MouseOverObject(Vector2 mousePos, double range)
         {
             Segment2 seg = new Segment2(PointA, PointB);
             Vector2 dir = seg.Change;

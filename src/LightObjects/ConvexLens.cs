@@ -111,12 +111,12 @@ namespace Lasers
             return cpn;
         }
         
-        protected override void AddOffset(Vector2 offset)
+        public override void OffsetObjPos(Vector2 offset)
         {
             PointA += offset;
             PointB += offset;
         }
-        protected internal override bool IsMouseOverObject(Vector2 mousePos, double range)
+        public override bool MouseOverObject(Vector2 mousePos, double range)
         {
             double dist1 = mousePos.SquaredDistance(_arc1.Centre);
             double dist2 = mousePos.SquaredDistance(_arc2.Centre);

@@ -98,6 +98,7 @@ namespace Lasers
         }
         public void OnMouseMove(Vector2 mouse)
         {
+            Vector2 diff = mouse - _m;
             _m = mouse;
             
             // Panning
@@ -122,20 +123,25 @@ namespace Lasers
             // Selecting obj hover point
             if (_objPointSelect)
             {
-                _objHover.Shift = _handle[Mods.Shift];
-                _objHover.Control = _handle[Mods.Control];
-                Vector2 hp = _objHover.Source.MouseInteract(mouse, _objHover);
-                _hoverPosition = hp;
+                HoverInteract(mouse);
                 return;
             }
             
             if (_isMoveObject)
             {
-                _moveObject.SetObjPos(mouse);
+                _moveObject.OffsetObjPos(diff);
                 return;
             }
             
             FindHovers(mouse);
+        }
+        private void HoverInteract(Vector2 mouse)
+        {
+            _objHover.Shift = _handle[Mods.Shift];
+            _objHover.Control = _handle[Mods.Control];
+            Vector2 hp = _objHover.Source.MouseInteract(mouse, _objHover);
+            _objHover.Scroll = 0d;
+            _hoverPosition = hp;
         }
         
         private void OnScroll(object s, ScrollEventArgs e)
@@ -143,9 +149,7 @@ namespace Lasers
             if (_objPointSelect)
             {
                 _objHover.Scroll += e.DeltaY;
-                _objHover.Shift = _handle[Mods.Shift];
-                _objHover.Control = _handle[Mods.Control];
-                _objHover.Source.MouseInteract(_hoverPosition, _objHover);
+                HoverInteract(_m);
                 return;
             }
             
@@ -206,6 +210,17 @@ namespace Lasers
             for (int i = 0; i < _engine.Objects.Count; i++)
             {
                 QueryData v = _engine.Objects[i].QueryMousePos(mouse, range);
+                
+                if (!v.Pass()) { continue; }
+                
+                _objHover = v;
+                _hoverPosition = v.Location;
+                return;
+            }
+            
+            for (int i = 0; i < _engine.LightSources.Count; i++)
+            {
+                QueryData v = _engine.LightSources[i].QueryMousePos(mouse, range);
                 
                 if (!v.Pass()) { continue; }
                 

@@ -197,7 +197,7 @@ namespace Lasers
                 LightObject lo = span[i];
                 if (lo == ignore || lo.Medium == -1 ||
                 // Test
-                    !lo.IsMouseOverObject(point, 0d))
+                    !lo.MouseOverObject(point, 0d))
                 {
                     continue;
                 }

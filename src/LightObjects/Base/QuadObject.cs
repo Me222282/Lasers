@@ -226,7 +226,7 @@ namespace Lasers
             
             if (data.Shift)
             {
-                SetShift(data.PointNumber, mousePos, data.Scroll);
+                SetShift(data.PointNumber, mousePos, LastScrollOffset);
                 return mousePos;
             }
             if (data.Control)
@@ -386,7 +386,7 @@ namespace Lasers
             }
         }
         
-        protected override void AddOffset(Vector2 offset)
+        public override void OffsetObjPos(Vector2 offset)
         {
             _pointA += offset;
             _pointB += offset;

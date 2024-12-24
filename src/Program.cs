@@ -223,8 +223,6 @@ namespace Lasers
             Random r = new Random();
             _engine.Objects.Clear();
             
-            _engine.Objects.Add(new ConvexLens(InBoundsPos(r), InBoundsPos(r), 0.2, 1.4));
-            
             for (int i = 0; i < _objCOunt; i++)
             {
                 int type = r.Next(0, 9);
@@ -281,6 +279,15 @@ namespace Lasers
                         InBoundsPos(r),
                         InBoundsPos(r),
                         InBoundsPos(r)));
+                    continue;
+                }
+                if (type == 8)
+                {
+                    _engine.Objects.Add(new ConvexLens(
+                        InBoundsPos(r),
+                        InBoundsPos(r),
+                        r.NextDouble(0.01, 0.99),
+                        r.NextDouble(0.5, 2d)));
                     continue;
                 }
                 
