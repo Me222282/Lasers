@@ -28,8 +28,8 @@ namespace Lasers
             {
                 Colour = ColourF3.Yellow,
                 Distance = 2d,
-                Range = Radian.Degrees(0d),
-                RayCount = 1
+                Range = Radian.Degrees(5d),
+                RayCount = 100
             };
             _engine.LightSources.Add(_ray);
             GenerateObjects();
@@ -172,16 +172,16 @@ namespace Lasers
                 _spin.Reset(_animator);
                 return;
             }
-            if (e[Keys.Equal])
-            {
-                _engine.Bounces++;
-                return;
-            }
-            if (e[Keys.Minus])
-            {
-                _engine.Bounces--;
-                return;
-            }
+            // if (e[Keys.Equal])
+            // {
+            //     _engine.Bounces++;
+            //     return;
+            // }
+            // if (e[Keys.Minus])
+            // {
+            //     _engine.Bounces--;
+            //     return;
+            // }
         }
         
         protected override void OnMouseDown(MouseEventArgs e)
@@ -223,11 +223,9 @@ namespace Lasers
             Random r = new Random();
             _engine.Objects.Clear();
             
-            _engine.Objects.Add(new MirrorArc(InBoundsPos(r), InBoundsPos(r), 0.7));
-            
             for (int i = 0; i < _objCOunt; i++)
             {
-                int type = r.Next(0, 8);
+                int type = r.Next(0, 9);
                 
                 if (type == 0)
                 {
@@ -242,6 +240,11 @@ namespace Lasers
                 if (type == 2)
                 {
                     _engine.Objects.Add(new ReflectiveCircle(InBoundsPos(r), r.NextDouble(0.05d, 1d)));
+                    continue;
+                }
+                if (type == 7)
+                {
+                    _engine.Objects.Add(new MirrorArc(InBoundsPos(r), InBoundsPos(r), r.NextDouble(0.01, 0.99)));
                     continue;
                 }
                 if (type == 3)

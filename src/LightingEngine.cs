@@ -24,7 +24,7 @@ namespace Lasers
         public bool ReflectiveBounds { get; set; } = true;
         public double AirMedium { get; set; } = 1d;
         
-        public int Bounces { get; set; } = 1;
+        // public int Bounces { get; set; } = 1;
         
         public void RenderLights(LineDC context)
         {
@@ -65,8 +65,8 @@ namespace Lasers
             
             Segment2 lastSeg = new Segment2(0d, 0d);
             
-            // while (true)
-            for (int j = 0; j < Bounces; j++)
+            while (true)
+            // for (int j = 0; j < Bounces; j++)
             {
                 Segment2 seg = new Segment2(ray.Line, dist);
                 
