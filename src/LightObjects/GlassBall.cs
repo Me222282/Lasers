@@ -8,11 +8,10 @@ namespace Lasers
         // Again this is annoying
             : base(null)
         {
-            Inter = new RefractCircle(loc, radius, m, this);
-            Segments[0] = Inter;
+            _fraC = new RefractCircle(loc, radius, m, this);
+            Inter = _fraC;
+            Segments[0] = _fraC;
             
-            // there ust be a better way of doing this
-            _fraC = (RefractCircle)Inter;
             Inter.InnerColour = new ColourF(0.7f, 0.7f, 0.7f, 0.7f);
         }
         
