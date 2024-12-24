@@ -17,7 +17,7 @@ namespace Lasers
             Bounds = bounds;
         }
         
-        public List<LightSource> LightSources { get; } = new List<LightSource>();
+        public List<ILightSource> LightSources { get; } = new List<ILightSource>();
         public List<LightObject> Objects { get; } = new List<LightObject>();
         
         public Box Bounds { get; set; } = Box.One;
@@ -34,11 +34,9 @@ namespace Lasers
             });
         }
         
-        public void CalculateLight(LightSource source, ICollection<LineData> lines)
+        public void CalculateLight(ILightSource source, ICollection<LineData> lines)
         {
-            IEnumerable<Vector2> directions =  source.GetDirections();
-            
-            Parallel.ForEach(directions, (d) =>
+            Parallel.ForEach(source, (d) =>
             {
                 double m = GetMedium(source.Location, null);
                 Ray ray = new Ray(source.Location, d, m);

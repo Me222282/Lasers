@@ -5,7 +5,7 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public class RaySource : LightSource
+    public class RaySource : PointLightSource
     {
         public RaySource()
         {
@@ -24,6 +24,9 @@ namespace Lasers
             set => _direction = value;
         }
         
-        public unsafe override IEnumerable<Vector2> GetDirections() => new Vector2[]{ _direction };
+        public override IEnumerator<Vector2> GetEnumerator()
+        {
+            yield return _direction;
+        }
     }
 }

@@ -1,18 +1,19 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Zene.Structs;
 
 namespace Lasers
 {
-    public abstract class LightSource : IPointHover
+    public abstract class PointLightSource : ILightSource
     {
-        public LightSource()
+        public PointLightSource()
         {
             Distance = 1d;
             Location = Vector2.Zero;
             Colour = ColourF3.Yellow;
         }
-        public LightSource(double dist, Vector2 location, ColourF3 colour)
+        public PointLightSource(double dist, Vector2 location, ColourF3 colour)
         {
             Distance = dist;
             Location = location;
@@ -22,8 +23,6 @@ namespace Lasers
         public double Distance { get; set; }
         public Vector2 Location { get; set; }
         public ColourF3 Colour { get; set; }
-        
-        public abstract IEnumerable<Vector2> GetDirections();
 
         public QueryData QueryMousePos(Vector2 mousePos, double range)
         {
@@ -39,5 +38,8 @@ namespace Lasers
             Location = mousePos;
             return mousePos;
         }
+
+        public abstract IEnumerator<Vector2> GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

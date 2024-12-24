@@ -4,7 +4,7 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public class DisperseRays : LightSource
+    public class DisperseRays : PointLightSource
     {
         public DisperseRays()
         {
@@ -53,7 +53,7 @@ namespace Lasers
         }
         
         private Vector2[] _directions;
-        public override IEnumerable<Vector2> GetDirections() => _directions;
+        public override IEnumerator<Vector2> GetEnumerator() => ((IEnumerable<Vector2>)_directions).GetEnumerator();
         
         private void CalculateDirections()
         {
