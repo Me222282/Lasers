@@ -131,8 +131,10 @@ namespace Lasers
         
         private const double _tolerance = 0.00001;
         
-        public Vector2 RayIntersection(Segment2 ray, bool lastIntersect)
+        public Vector2 RayIntersection(RayArgs args)
         {
+            Segment2 ray = args.Ray;
+            
             Vector2 change = ray.Change;
             Vector2 offset = ray.A - _centre;
             
@@ -164,24 +166,24 @@ namespace Lasers
                 double t2 = ((-discriminant - b) / (2d * a));
                 
                 Vector2 p1 = ray.A + (t1 * change);
-                if (!InSector(p1))
-                {
-                    t1 = -1d;
-                }
+                // if (!InSector(p1))
+                // {
+                //     t1 = -1d;
+                // }
                 Vector2 p2 = ray.A + (t2 * change);
-                if (!InSector(p2))
-                {
-                    t2 = -1d;
-                }
+                // if (!InSector(p2))
+                // {
+                //     t2 = -1d;
+                // }
                 
-                if (t1 < 0d)
+                if (t1 <= 0d)
                 {
                     t = t2;
                     p = p2;
                     T = t1;
                     Op = p1;
                 }
-                else if (t2 < 0d)
+                else if (t2 <= 0d)
                 {
                     t = t1;
                     p = p1;
@@ -205,30 +207,57 @@ namespace Lasers
                 }
             }
             
-            if (t > 1d || t < 0d)
+            if (t > 1d || t <= 0d)
             {
                 return Vector2.PositiveInfinity;
             }
             
             // No rereflect issues
-            if (!lastIntersect)
+            if (!args.LastIntersect)
             {
-                return p;
-            }
-            
-            // Heading away from circle centre - detection is a rereflect
-            if (offset.SquaredLength < _centre.SquaredDistance(ray.A + (change * _tolerance * _radius / change.SquaredLength)))
-            {
+                if (InSector(p))
+                {
+                    return p;
+                }
+                if (T > 1d || T <= 0d)
+                {
+                    return Vector2.PositiveInfinity;
+                }
+                if (InSector(Op))
+                {
+                    return Op;
+                }
                 return Vector2.PositiveInfinity;
             }
             
-            if (T <= 0d)
+            bool inside = (ray.A - _centre).Dot(args.LastRay.Change) > 0d;
+            
+            // heading away or there are 2 points
+            if (!inside || T > 0d)
             {
-                return p;
+                t = -1d;
             }
             
             // Use other intersection
-            return Op;
+            if (t <= 0d)
+            {
+                if (T > 0d)
+                {
+                    if (!InSector(Op))
+                    {
+                        return Vector2.PositiveInfinity;
+                    }
+                    return Op;
+                }
+                
+                return Vector2.PositiveInfinity;
+            }
+            
+            if (!InSector(p))
+            {
+                return Vector2.PositiveInfinity;
+            }
+            return p;
         }
         
         public Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
@@ -237,7 +266,13 @@ namespace Lasers
             Line2 reflect = new Line2(diff, refPoint);
             Vector2 np = reflect.Reflect(ray.Line.Location);
             
-            return new Ray(refPoint, (np - refPoint).Normalised(), ray.Medium);
+            Vector2 dir = (np - refPoint).Normalised();
+            if (dir == 0d)
+            {
+                Console.WriteLine("!!!");
+            }
+            
+            return new Ray(refPoint, dir, ray.Medium);
         }
     }
 }

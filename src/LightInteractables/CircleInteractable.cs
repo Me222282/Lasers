@@ -26,8 +26,10 @@ namespace Lasers
         
         private const double _tolerance = 0.00001;
         
-        public Vector2 RayIntersection(Segment2 ray, bool lastIntersect)
+        public Vector2 RayIntersection(RayArgs args)
         {
+            Segment2 ray = args.Ray;
+            
             Vector2 change = ray.Change;
             Vector2 offset = ray.A - Location;
             
@@ -56,12 +58,12 @@ namespace Lasers
                 double t1 = ((discriminant - b) / (2d * a));
                 double t2 = ((-discriminant - b) / (2d * a));
                 
-                if (t1 < 0d)
+                if (t1 <= 0d)
                 {
                     t = t2;
                     T = t1;
                 }
-                else if (t2 < 0d)
+                else if (t2 <= 0d)
                 {
                     t = t1;
                     T = t2;
@@ -78,25 +80,34 @@ namespace Lasers
                 return Vector2.PositiveInfinity;
             }
             
+            Vector2 p = ray.A + (t * change);
+            
             // No rereflect issues
-            if (!lastIntersect)
+            if (!args.LastIntersect)
             {
-                return ray.A + (t * change);
+                return p;
             }
             
-            // Heading away from circle centre - detection is a rereflect
-            if (offset.SquaredLength < Location.SquaredDistance(ray.A + (change * _tolerance * Radius / change.SquaredLength)))
-            {
-                return Vector2.PositiveInfinity;
-            }
+            bool inside = (ray.A - Location).Dot(args.LastRay.Change) > 0d;
             
-            if (T <= 0d)
+            // heading away or there are 2 points
+            if (!inside || T > 0d)
             {
-                return ray.A + (t * change);
+                t = -1d;
             }
             
             // Use other intersection
-            return ray.A + (T * change);
+            if (t <= 0d)
+            {
+                if (T <= 0d)
+                {
+                    return Vector2.PositiveInfinity;
+                }
+                
+                return ray.A + (T * change);
+            }
+            
+            return p;
         }
         
         public abstract Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint);

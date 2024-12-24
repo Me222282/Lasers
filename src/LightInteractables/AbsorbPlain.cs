@@ -21,11 +21,11 @@ namespace Lasers
             context.AddLine(new LineData(PointA, PointB, ColourF.IndianRed));
         }
         
-        public Vector2 RayIntersection(Segment2 ray, bool lastIntersect)
+        public Vector2 RayIntersection(RayArgs args)
         {
             Segment2 seg = new Segment2(PointA, PointB);
             
-            if (ray.Intersects(seg, out Vector2 v))
+            if (args.Ray.Intersects(seg, out Vector2 v))
             {
                 return v;
             }

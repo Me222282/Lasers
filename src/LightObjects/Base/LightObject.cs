@@ -46,7 +46,7 @@ namespace Lasers
             int count = 0;
             for (int i = 0; i < Segments.Length; i++)
             {
-                if (!double.IsInfinity(Segments[i].RayIntersection(cast).X))
+                if (!double.IsInfinity(Segments[i].RayIntersection(new RayArgs(cast)).X))
                 {
                     count++;
                 }

@@ -24,6 +24,8 @@ namespace Lasers
         public bool ReflectiveBounds { get; set; } = true;
         public double AirMedium { get; set; } = 1d;
         
+        public int Bounces { get; set; } = 1;
+        
         public void RenderLights(LineDC context)
         {
             Parallel.ForEach(LightSources, (ls) =>
@@ -61,7 +63,10 @@ namespace Lasers
             
             double totalDist = dist;
             
-            while (true)
+            Segment2 lastSeg = new Segment2(0d, 0d);
+            
+            // while (true)
+            for (int j = 0; j < Bounces; j++)
             {
                 Segment2 seg = new Segment2(ray.Line, dist);
                 
@@ -78,7 +83,7 @@ namespace Lasers
                         
                         bool isLastHit = current == lastHit;
                         
-                        Vector2 inter = current.RayIntersection(seg, isLastHit);
+                        Vector2 inter = current.RayIntersection(new RayArgs(seg, lastSeg, isLastHit));
                         
                         // Intersection outside of bounds
                         if (ReflectiveBounds &&
@@ -129,9 +134,12 @@ namespace Lasers
                 double oldDist = dist;
                 dist -= Math.Sqrt(closeDist);
                 
+                lastSeg.A = pointA;
+                lastSeg.B = ray.Line.Location;
+                
                 ColourF nc = end.Lerp(c, (float)(dist / totalDist));
                 // ColourF nc = end.Lerp(c, (float)Exp(dist / totalDist));
-                lines.Add(new LineData(pointA, ray.Line.Location, oldC, nc));
+                lines.Add(new LineData(lastSeg.A, lastSeg.B, oldC, nc));
                 oldC = nc;
                 
                 if (dist <= 0d || ray.Line.Direction == Vector2.Zero) { break; }

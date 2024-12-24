@@ -29,16 +29,16 @@ namespace Lasers
             context.AddLine(new LineData(PointA, PointB, ColourF.LightGrey));
         }
         
-        public Vector2 RayIntersection(Segment2 ray, bool lastIntersect)
+        public Vector2 RayIntersection(RayArgs args)
         {
-            if (lastIntersect)
+            if (args.LastIntersect)
             {
                 return Vector2.PositiveInfinity;
             }
             
             Segment2 seg = new Segment2(PointA, PointB);
             
-            if (ray.Intersects(seg, out Vector2 v))
+            if (args.Ray.Intersects(seg, out Vector2 v))
             {
                 return v;
             }
