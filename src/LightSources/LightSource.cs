@@ -11,18 +11,18 @@ namespace Lasers
         {
             Distance = 1d;
             Location = Vector2.Zero;
-            Colour = ColourF3.Yellow;
+            Wavelength = 578d;
         }
-        public PointLightSource(double dist, Vector2 location, ColourF3 colour)
+        public PointLightSource(double dist, Vector2 location, double wl)
         {
             Distance = dist;
             Location = location;
-            Colour = colour;
+            Wavelength = wl;
         }
         
         public double Distance { get; set; }
         public Vector2 Location { get; set; }
-        public ColourF3 Colour { get; set; }
+        public double Wavelength { get; set; }
 
         public QueryData QueryMousePos(Vector2 mousePos, double range)
         {

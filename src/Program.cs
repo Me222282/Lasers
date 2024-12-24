@@ -26,7 +26,7 @@ namespace Lasers
             _engine = new LightingEngine();
             _ray = new DisperseRays()
             {
-                Colour = ColourF3.Yellow,
+                Wavelength = 578d,
                 Distance = 2d,
                 Range = Radian.Degrees(5d),
                 RayCount = 100

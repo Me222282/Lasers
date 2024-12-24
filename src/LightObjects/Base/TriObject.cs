@@ -141,7 +141,7 @@ namespace Lasers
             
             if (data.Shift)
             {
-                SetShift(data.PointNumber, mousePos, LastScrollOffset);
+                SetShift(data.PointNumber, mousePos);
                 return mousePos;
             }
             
@@ -159,11 +159,8 @@ namespace Lasers
             PointC = mousePos;
             return mousePos;
         }
-        private void SetShift(int param, Vector2 mouse, double scroll)
+        private void SetShift(int param, Vector2 mouse)
         {
-            Matrix2 rotate1 = Matrix2.CreateRotation(Radian.Quarter + (scroll * 0.03));
-            Matrix2 rotate2 = Matrix2.CreateRotation(-Radian.Quarter + (scroll * 0.03));
-            
             if (param == 0)
             {
                 Vector2 rp = FindOp(_pointA, _pointB, _pointC);

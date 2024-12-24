@@ -40,7 +40,8 @@ namespace Lasers
             {
                 double m = GetMedium(source.Location, null);
                 Ray ray = new Ray(source.Location, d, m);
-                CalculateRay(ray, source.Distance, source.Colour, lines);
+                ColourF3 c = ColourF3.FromWavelength((float)source.Wavelength);
+                CalculateRay(ray, source.Distance, c, lines);
             });
             /*
             for (int i = 0; i < directions.Length; i++)

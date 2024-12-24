@@ -17,7 +17,7 @@ namespace Lasers
     {
         public double Distance { get; }
         public Vector2 Location { get; }
-        public ColourF3 Colour { get; }
+        public double Wavelength { get; }
     }
     public interface ILightObject : IPointHover, IMoveable
     {

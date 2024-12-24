@@ -11,8 +11,8 @@ namespace Lasers
         {
             _direction = Vector2.Zero;
         }
-        public RaySource(double dist, Vector2 location, Vector2 direction, ColourF3 colour)
-            : base(dist, location, colour)
+        public RaySource(double dist, Vector2 location, Vector2 direction, double wl)
+            : base(dist, location, wl)
         {
             _direction = direction;
         }
