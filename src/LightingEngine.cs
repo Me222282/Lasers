@@ -18,7 +18,7 @@ namespace Lasers
         }
         
         public List<ILightSource> LightSources { get; } = new List<ILightSource>();
-        public List<LightObject> Objects { get; } = new List<LightObject>();
+        public List<ILightObject> Objects { get; } = new List<ILightObject>();
         
         public Box Bounds { get; set; } = Box.One;
         public bool ReflectiveBounds { get; set; } = true;
@@ -69,11 +69,12 @@ namespace Lasers
                 Segment2 seg = new Segment2(ray.Line, dist);
                 
                 ILightInteractable hit = null;
+                ILightObject hitSource = null;
                 double closeDist = dist * dist;
                 Vector2 intersection = 0d;
                 for (int i = 0; i < Objects.Count; i++)
                 {
-                    LightObject lo = Objects[i];
+                    ILightObject lo = Objects[i];
                     
                     for (int l = 0; l < lo.Length; l++)
                     {
@@ -81,7 +82,7 @@ namespace Lasers
                         
                         bool isLastHit = current == lastHit;
                         
-                        Vector2 inter = current.RayIntersection(new RayArgs(seg, /*lastSeg,*/ isLastHit));
+                        Vector2 inter = current.RayIntersection(new FindRayArgs(seg, /*lastSeg,*/ isLastHit));
                         
                         // Intersection outside of bounds
                         if (ReflectiveBounds &&
@@ -99,6 +100,7 @@ namespace Lasers
                             intersection = inter;
                             closeDist = currentDist;
                             hit = current;
+                            hitSource = lo;
                         }
                     }
                 }
@@ -126,7 +128,7 @@ namespace Lasers
                 }
                 else
                 {
-                    ray = hit.InteractRay(this, ray, intersection);
+                    ray = hit.InteractRay(new ResolveRayArgs(this, ray, intersection, hitSource));
                 }
                 
                 double oldDist = dist;
@@ -187,12 +189,12 @@ namespace Lasers
             );
         }
         
-        public double GetMedium(Vector2 point, LightObject ignore)
+        public double GetMedium(Vector2 point, ILightObject ignore)
         {
-            ReadOnlySpan<LightObject> span = CollectionsMarshal.AsSpan(Objects);
+            ReadOnlySpan<ILightObject> span = CollectionsMarshal.AsSpan(Objects);
             for (int i = 0; i < span.Length; i++)
             {
-                LightObject lo = span[i];
+                ILightObject lo = span[i];
                 if (lo == ignore || lo.Medium == -1 ||
                 // Test
                     !lo.MouseOverObject(point, 0d))

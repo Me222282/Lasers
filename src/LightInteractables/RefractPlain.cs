@@ -6,16 +6,12 @@ namespace Lasers
 {
     public class RefractPlain : ILightInteractable
     {
-        public RefractPlain(Vector2 a, Vector2 b, double m, LightObject obj)
+        public RefractPlain(Vector2 a, Vector2 b, double m)
         {
             PointA = a;
             PointB = b;
             Medium = m;
-            
-            _obj = obj;
         }
-        
-        private LightObject _obj;
         
         public Vector2 PointA { get; set; }
         public Vector2 PointB { get; set; }
@@ -29,7 +25,7 @@ namespace Lasers
             context.AddLine(new LineData(PointA, PointB, ColourF.LightGrey));
         }
         
-        public Vector2 RayIntersection(RayArgs args)
+        public Vector2 RayIntersection(FindRayArgs args)
         {
             if (args.LastIntersect)
             {
@@ -49,8 +45,11 @@ namespace Lasers
         private const double HalfPI = Math.PI / 2d;
         private const double TwoPI = Math.PI * 2d;
         
-        public Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
+        public Ray InteractRay(ResolveRayArgs args)
         {
+            Vector2 refPoint = args.Point;
+            Ray ray = args.Ray;
+            
             Vector2 diff = PointA - PointB;
             
             Radian lineA = Math.Atan2(diff.Y, diff.X);
@@ -65,7 +64,7 @@ namespace Lasers
             double m = Medium;
             if (ray.Medium == m)
             {
-                m = engine.GetMedium(refPoint, _obj);
+                m = args.Engine.GetMedium(refPoint, args.Source);
             }
             
             return Extensions.Refract(m, ray, refPoint, lineA);

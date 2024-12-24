@@ -8,7 +8,7 @@ namespace Lasers
         
         public void Render(LineDC context);
         
-        public Vector2 RayIntersection(RayArgs args);
-        public Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint);
+        public Vector2 RayIntersection(FindRayArgs args);
+        public Ray InteractRay(ResolveRayArgs args);
     }
 }

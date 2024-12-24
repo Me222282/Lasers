@@ -8,8 +8,8 @@ namespace Lasers
         public ConvexLens(Vector2 a, Vector2 b, double c, double m)
             : base(2)
         {
-            _arc1 = new RefractArc(a, b, c, m, this);
-            _arc2 = new RefractArc(b, a, c, m, this);
+            _arc1 = new RefractArc(a, b, c, m);
+            _arc2 = new RefractArc(b, a, c, m);
             Segments[0] = _arc1;
             Segments[1] = _arc2;
             

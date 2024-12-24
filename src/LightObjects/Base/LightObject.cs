@@ -4,7 +4,7 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public abstract class LightObject : IPointHover, IMoveable
+    public abstract class LightObject : ILightObject
     {
         protected LightObject(int count)
         {
@@ -39,7 +39,7 @@ namespace Lasers
             int count = 0;
             for (int i = 0; i < Segments.Length; i++)
             {
-                if (!double.IsInfinity(Segments[i].RayIntersection(new RayArgs(cast)).X))
+                if (!double.IsInfinity(Segments[i].RayIntersection(new FindRayArgs(cast)).X))
                 {
                     count++;
                 }

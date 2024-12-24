@@ -2,9 +2,9 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public struct RayArgs
+    public struct FindRayArgs
     {
-        public RayArgs(Segment2 ray, bool li = false)
+        public FindRayArgs(Segment2 ray, bool li = false)
         {
             Ray = ray;
             LastIntersect = li;
@@ -20,5 +20,20 @@ namespace Lasers
         public Segment2 Ray;
         public bool LastIntersect;
         //public Segment2 LastRay;
+    }
+    public struct ResolveRayArgs
+    {
+        public ResolveRayArgs(LightingEngine e, Ray r, Vector2 p, ILightObject s)
+        {
+            Engine = e;
+            Ray = r;
+            Point = p;
+            Source = s;
+        }
+        
+        public LightingEngine Engine;
+        public Ray Ray;
+        public Vector2 Point;
+        public ILightObject Source;
     }
 }

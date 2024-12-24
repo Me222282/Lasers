@@ -36,7 +36,7 @@ namespace Lasers
         private const double _selectRange = 10d;
         private QueryData _objHover = QueryData.Fail;
         private bool _objPointSelect = false;
-        private LightObject _moveObject = null;
+        private IMoveable _moveObject = null;
         private bool _isMoveObject = false;
         private double _multiplier = 1d;
         private Vector2 _mouseOld;

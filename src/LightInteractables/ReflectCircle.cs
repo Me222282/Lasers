@@ -11,8 +11,11 @@ namespace Lasers
             
         }
         
-        public override Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
+        public override Ray InteractRay(ResolveRayArgs args)
         {
+            Vector2 refPoint = args.Point;
+            Ray ray = args.Ray;
+            
             Vector2 diff = Location - refPoint;
             Line2 reflect = new Line2(diff, refPoint);
             Vector2 np = reflect.Reflect(ray.Line.Location);

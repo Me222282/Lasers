@@ -21,7 +21,7 @@ namespace Lasers
             context.AddLine(new LineData(PointA, PointB, ColourF.IndianRed));
         }
         
-        public Vector2 RayIntersection(RayArgs args)
+        public Vector2 RayIntersection(FindRayArgs args)
         {
             Segment2 seg = new Segment2(PointA, PointB);
             
@@ -33,9 +33,9 @@ namespace Lasers
             return Vector2.PositiveInfinity;
         }
         
-        public Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
+        public Ray InteractRay(ResolveRayArgs args)
         {
-            return new Ray(refPoint, Vector2.Zero, ray.Medium);
+            return new Ray(args.Point, Vector2.Zero, args.Ray.Medium);
         }
     }
 }

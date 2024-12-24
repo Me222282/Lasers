@@ -19,4 +19,12 @@ namespace Lasers
         public Vector2 Location { get; }
         public ColourF3 Colour { get; }
     }
+    public interface ILightObject : IPointHover, IMoveable
+    {
+        public int Length { get; } 
+        public ILightInteractable this[int index] { get; }
+        public double Medium { get; }
+        
+        public void Render(LineDC context);
+    }
 }

@@ -142,7 +142,7 @@ namespace Lasers
         
         private const double _tolerance = 0.00001;
         
-        public Vector2 RayIntersection(RayArgs args)
+        public Vector2 RayIntersection(FindRayArgs args)
         {
             Segment2 ray = args.Ray;
             
@@ -271,6 +271,6 @@ namespace Lasers
             return p;
         }
         
-        public abstract Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint);
+        public abstract Ray InteractRay(ResolveRayArgs args);
     }
 }

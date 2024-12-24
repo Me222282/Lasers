@@ -6,19 +6,19 @@ namespace Lasers
 {
     public class RefractArc : ArcInteractable
     {
-        public RefractArc(Vector2 a, Vector2 b, double c, double m, LightObject obj)
+        public RefractArc(Vector2 a, Vector2 b, double c, double m)
             : base(a, b, c)
         {
             Medium = m;
-            _obj = obj;
         }
-        
-        private LightObject _obj;
         
         public double Medium { get; set; }
         
-        public override Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
+        public override Ray InteractRay(ResolveRayArgs args)
         {
+            Vector2 refPoint = args.Point;
+            Ray ray = args.Ray;
+            
             Vector2 diff = refPoint - _centre;
             diff.Rotate90();
             Radian lineA = Math.Atan2(diff.Y, diff.X);
@@ -33,7 +33,7 @@ namespace Lasers
             double m = Medium;
             if (ray.Medium == m)
             {
-                m = engine.GetMedium(refPoint, _obj);
+                m = args.Engine.GetMedium(refPoint, args.Source);
             }
             
             return Extensions.Refract(m, ray, refPoint, lineA);

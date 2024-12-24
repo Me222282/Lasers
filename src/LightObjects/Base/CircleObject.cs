@@ -3,16 +3,19 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public abstract class CircleObject : LightObject
+    public abstract class CircleObject<T> : ILightObject
+        where T : CircleInteractable
     {
-        public CircleObject(CircleInteractable i)
-            : base(1)
+        public CircleObject(T i)
         {
             Inter = i;
-            Segments[0] = Inter;
         }
         
-        protected CircleInteractable Inter;
+        protected T Inter;
+        
+        public int Length => 1;
+        public ILightInteractable this[int index] => Inter;
+        public virtual double Medium { get; set; } = -1d;
         
         public Vector2 Location
         {
@@ -25,7 +28,9 @@ namespace Lasers
             set => Inter.Radius = value;
         }
         
-        public override QueryData QueryMousePos(Vector2 mousePos, double range)
+        public virtual void Render(LineDC context) => Inter.Render(context);
+        
+        public QueryData QueryMousePos(Vector2 mousePos, double range)
         {   
             double dist = mousePos.SquaredDistance(Inter.Location);
             double rMin = Inter.Radius - range;
@@ -42,16 +47,14 @@ namespace Lasers
             
             return new QueryData(0, Inter.Location + diff, this);
         }
-        public override Vector2 MouseInteract(Vector2 mousePos, QueryData data)
+        public Vector2 MouseInteract(Vector2 mousePos, QueryData data)
         {
-            base.MouseInteract(mousePos, data);
-            
             Inter.Radius = Inter.Location.Distance(mousePos);
             return mousePos;
         }
         
-        public override void OffsetObjPos(Vector2 offset) => Inter.Location += offset;
-        public override bool MouseOverObject(Vector2 mousePos, double range)
+        public void OffsetObjPos(Vector2 offset) => Inter.Location += offset;
+        public bool MouseOverObject(Vector2 mousePos, double range)
         {
             double dist = mousePos.SquaredDistance(Inter.Location);
             double r2 = Inter.Radius * Inter.Radius;

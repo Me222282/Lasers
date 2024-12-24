@@ -21,7 +21,7 @@ namespace Lasers
             context.AddLine(new LineData(PointA, PointB, ColourF.White));
         }
         
-        public Vector2 RayIntersection(RayArgs args)
+        public Vector2 RayIntersection(FindRayArgs args)
         {
             if (args.LastIntersect)
             {
@@ -38,8 +38,11 @@ namespace Lasers
             return Vector2.PositiveInfinity;
         }
         
-        public Ray InteractRay(LightingEngine engine, Ray ray, Vector2 refPoint)
+        public Ray InteractRay(ResolveRayArgs args)
         {
+            Vector2 refPoint = args.Point;
+            Ray ray = args.Ray;
+            
             Vector2 diff = PointA - PointB;
             Line2 reflect = new Line2(diff.Rotated90(), refPoint);
             Vector2 np = reflect.Reflect(ray.Line.Location);
