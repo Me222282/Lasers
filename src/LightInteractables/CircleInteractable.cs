@@ -19,9 +19,9 @@ namespace Lasers
         public ColourF3 Colour { get; set; }
         public ColourF InnerColour { get; set; }
         
-        public virtual void Render(LineDC context)
+        public void OnRender(IDrawingContext context, DrawArgs args)
         {
-            context.DrawBorderEllipse(new Box(Location, Radius * 2d), 1d * context.Multiplier, InnerColour, (ColourF)Colour);
+            context.DrawBorderEllipse(new Box(Location, Radius * 2d), 1d * args.Multiplier, InnerColour, (ColourF)Colour);
         }
         
         private const double _tolerance = 0.00001;

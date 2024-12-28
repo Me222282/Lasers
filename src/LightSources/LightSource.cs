@@ -23,6 +23,7 @@ namespace Lasers
         public double Distance { get; set; }
         public Vector2 Location { get; set; }
         public double Wavelength { get; set; }
+        public double Intensity { get; set; } = 1d;
 
         public QueryData QueryMousePos(Vector2 mousePos, double range)
         {

@@ -1,4 +1,5 @@
 using System;
+using Zene.Graphics;
 using Zene.Structs;
 
 namespace Lasers
@@ -16,9 +17,9 @@ namespace Lasers
         
         public ColourF3 Colour => ColourF3.IndianRed;
         
-        public void Render(LineDC context)
+        public void OnRender(IDrawingContext context, DrawArgs args)
         {
-            context.AddLine(new LineData(PointA, PointB, ColourF.IndianRed));
+            args.Lines.Add(new LineData(PointA, PointB, ColourF.IndianRed));
         }
         
         public Vector2 RayIntersection(FindRayArgs args)

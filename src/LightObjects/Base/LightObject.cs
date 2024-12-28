@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Zene.Graphics;
 using Zene.Structs;
 
 namespace Lasers
@@ -18,11 +19,11 @@ namespace Lasers
         public ILightInteractable this[int index] => Segments[index];
         public virtual double Medium { get; set; } = -1d;
         
-        public virtual void Render(LineDC context)
+        public virtual void OnRender(IDrawingContext context, DrawArgs args)
         {
             for (int i = 0 ; i < Segments.Length; i++)
             {
-                Segments[i].Render(context);
+                context.Render(Segments[i], args);
             }
         }
         
@@ -32,7 +33,7 @@ namespace Lasers
             LastScrollOffset += data.Scroll;
             return mousePos;
         }
-        public virtual bool MouseOverObject(Vector2 mousePos, double range)
+        public virtual bool PointOverObject(Vector2 mousePos, double range)
         {
             Segment2 cast = new Segment2(mousePos, new Vector2(mousePos.X + 1000_000d, mousePos.Y));
             

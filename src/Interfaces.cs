@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Zene.Graphics;
 using Zene.Structs;
 
 namespace Lasers
@@ -10,7 +11,7 @@ namespace Lasers
     }
     public interface IMoveable
     {
-        public bool MouseOverObject(Vector2 mousePos, double range);
+        public bool PointOverObject(Vector2 point, double range);
         public void OffsetObjPos(Vector2 offset);
     }
     public interface ILightSource : IPointHover, IEnumerable<Vector2>
@@ -18,13 +19,12 @@ namespace Lasers
         public double Distance { get; }
         public Vector2 Location { get; }
         public double Wavelength { get; }
+        public double Intensity { get; }
     }
-    public interface ILightObject : IPointHover, IMoveable
+    public interface ILightObject : IPointHover, IMoveable, IRenderable<DrawArgs>
     {
         public int Length { get; } 
         public ILightInteractable this[int index] { get; }
         public double Medium { get; }
-        
-        public void Render(LineDC context);
     }
 }

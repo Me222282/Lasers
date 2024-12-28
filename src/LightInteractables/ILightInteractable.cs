@@ -1,12 +1,11 @@
+using Zene.Graphics;
 using Zene.Structs;
 
 namespace Lasers
 {
-    public interface ILightInteractable
+    public interface ILightInteractable : IRenderable<DrawArgs>
     {
         public ColourF3 Colour { get; }
-        
-        public void Render(LineDC context);
         
         public Vector2 RayIntersection(FindRayArgs args);
         public Ray InteractRay(ResolveRayArgs args);

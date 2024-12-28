@@ -1,12 +1,14 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Zene.Graphics;
 using Zene.Structs;
 
 namespace Lasers
 {
-    public class LightingEngine
+    public class LightingEngine : IRenderable<DrawArgs>
     {
         public LightingEngine()
         {
@@ -20,17 +22,18 @@ namespace Lasers
         public List<ILightSource> LightSources { get; } = new List<ILightSource>();
         public List<ILightObject> Objects { get; } = new List<ILightObject>();
         
+        
         public Box Bounds { get; set; } = Box.One;
         public bool ReflectiveBounds { get; set; } = true;
         public double AirMedium { get; set; } = 1d;
         
         // public int Bounces { get; set; } = 1;
         
-        public void RenderLights(LineDC context)
+        public void OnRender(IDrawingContext context, DrawArgs args)
         {
             Parallel.ForEach(LightSources, (ls) =>
             {
-                CalculateLight(ls, context);
+                CalculateLight(ls, args.Lines);
             });
         }
         
@@ -43,14 +46,7 @@ namespace Lasers
                 ColourF3 c = ColourF3.FromWavelength((float)source.Wavelength);
                 CalculateRay(ray, source.Distance, c, lines);
             });
-            /*
-            for (int i = 0; i < directions.Length; i++)
-            {
-                mh.Clear();
-                mh.Add(1d);
-                Ray ray = new Ray(source.Location, directions[i], mh);
-                CalculateRay(ray, source.Distance, source.Colour, lines);
-            }*/
+            
         }
         private void CalculateRay(Ray ray, double dist, ColourF3 colour, ICollection<LineData> lines)
         {
@@ -83,7 +79,7 @@ namespace Lasers
                         
                         bool isLastHit = current == lastHit;
                         
-                        Vector2 inter = current.RayIntersection(new FindRayArgs(seg, /*lastSeg,*/ isLastHit));
+                        Vector2 inter = current.RayIntersection(new FindRayArgs(seg, isLastHit));
                         
                         // Intersection outside of bounds
                         if (ReflectiveBounds &&
@@ -139,7 +135,6 @@ namespace Lasers
                 lastSeg.B = ray.Line.Location;
                 
                 ColourF nc = end.Lerp(c, (float)(dist / totalDist));
-                // ColourF nc = end.Lerp(c, (float)Exp(dist / totalDist));
                 lines.Add(new LineData(lastSeg.A, lastSeg.B, oldC, nc));
                 oldC = nc;
                 
@@ -198,7 +193,7 @@ namespace Lasers
                 ILightObject lo = span[i];
                 if (lo == ignore || lo.Medium == -1 ||
                 // Test
-                    !lo.MouseOverObject(point, 0d))
+                    !lo.PointOverObject(point, 0d))
                 {
                     continue;
                 }
@@ -208,10 +203,5 @@ namespace Lasers
             
             return AirMedium;
         }
-        
-        // private double _curvature = 5d;
-        // private double _coefficient = 1d / (1d - Math.Exp(-5d));
-        // private double Exp(double x)
-        //     => (1 - Math.Exp(-_curvature * x)) * _coefficient;
     }
 }

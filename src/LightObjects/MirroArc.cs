@@ -87,7 +87,7 @@ namespace Lasers
             PointA += offset;
             PointB += offset;
         }
-        public override bool MouseOverObject(Vector2 mousePos, double range)
+        public override bool PointOverObject(Vector2 mousePos, double range)
         {
             if (!_arc.InSector(mousePos)) { return false; }
             

@@ -6,7 +6,7 @@ using Zene.Windowing;
 
 namespace Lasers
 {
-    public class UserManager : IRenderable<double>
+    public class UserManager : IRenderable<DrawArgs>
     {
         public UserManager(Element handle, LightingEngine engine, Animator animator)
         {
@@ -57,9 +57,9 @@ namespace Lasers
             }
         }
         
-        public void OnRender(IDrawingContext context, double multiplier)
+        public void OnRender(IDrawingContext context, DrawArgs args)
         {
-            _multiplier = multiplier;
+            _multiplier = args.Multiplier;
             
             // UI element to help show selectable poitns
             //if (_hover.Pass())
@@ -282,7 +282,7 @@ namespace Lasers
         {
             for (int i = 0; i < _engine.Objects.Count; i++)
             {
-                if (!_engine.Objects[i].MouseOverObject(mouse, _selectRange * _multiplier)) { continue; }
+                if (!_engine.Objects[i].PointOverObject(mouse, _selectRange * _multiplier)) { continue; }
                 
                 _moveObject = _engine.Objects[i];
                 CursorStyle = Cursor.ResizeAll;

@@ -1,4 +1,5 @@
 using System;
+using Zene.Graphics;
 using Zene.Structs;
 
 namespace Lasers
@@ -28,7 +29,7 @@ namespace Lasers
             set => Inter.Radius = value;
         }
         
-        public virtual void Render(LineDC context) => Inter.Render(context);
+        public void OnRender(IDrawingContext context, DrawArgs args) => context.Render(Inter, args);
         
         public QueryData QueryMousePos(Vector2 mousePos, double range)
         {   
@@ -54,7 +55,7 @@ namespace Lasers
         }
         
         public void OffsetObjPos(Vector2 offset) => Inter.Location += offset;
-        public bool MouseOverObject(Vector2 mousePos, double range)
+        public bool PointOverObject(Vector2 mousePos, double range)
         {
             double dist = mousePos.SquaredDistance(Inter.Location);
             double r2 = Inter.Radius * Inter.Radius;

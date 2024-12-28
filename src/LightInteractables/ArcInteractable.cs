@@ -56,7 +56,7 @@ namespace Lasers
         public ColourF3 Colour => ColourF3.White;
         public ColourF InnerColour { get; set; }
         
-        public void Render(LineDC context)
+        public void OnRender(IDrawingContext context, DrawArgs args)
         {
             context.Shader = Shapes.CircleShader;
             Shapes.CircleShader.BorderColour = (ColourF)Colour;
@@ -82,7 +82,7 @@ namespace Lasers
             // Shapes.CircleShader.Size = r * 2d;
             Shapes.CircleShader.Offset = ((hsx, size.Y - _radius) / size);
             Shapes.CircleShader.SetSR(size, _radius);
-            Shapes.CircleShader.LineWidth = context.Multiplier;
+            Shapes.CircleShader.LineWidth = args.Multiplier;
             
             Vector2 ab = _b - _a;
             

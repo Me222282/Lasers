@@ -22,7 +22,11 @@ namespace Lasers
             
             _animator = new Animator();
             
-            _context = new LineDC();
+            _lm = new LineManager();
+            _context = new DrawContext()
+            {
+                RenderState = RenderState.BlendReady
+            };
             _engine = new LightingEngine();
             _ray = new DisperseRays()
             {
@@ -65,7 +69,8 @@ namespace Lasers
         }
         
         private LightingEngine _engine;
-        private LineDC _context;
+        private LineManager _lm;
+        private DrawContext _context;
         private UserManager _um;
         
         //private RaySource _ray;
@@ -80,8 +85,7 @@ namespace Lasers
             _animator.Invoke();
             
             _multiplier = _renderScale.X / (Size.X * 0.5d * ViewScale);
-            _context.Multiplier = _multiplier;
-            _engine.RenderLights(_context);
+            _context.Render(_engine, new DrawArgs(_lm, _multiplier));
         }
         private void OnRender(object sender, RenderArgs e)
         {
@@ -101,41 +105,42 @@ namespace Lasers
                 _context.DrawBox(_engine.Bounds, new ColourF(0.1f, 0.1f, 0.1f));
             }
             
+            DrawArgs args = new DrawArgs(_lm, _multiplier);
             for (int i = 0; i < _engine.Objects.Count; i++)
             {
-                _engine.Objects[i].Render(_context);
+                _context.Render(_engine.Objects[i], args);
             }
             
             if (_engine.ReflectiveBounds)
             {
                 Box bounds = _engine.Bounds;
                 
-                _context.AddLine(
+                _lm.AddLine(
                     new LineData(
                         (bounds.Left, bounds.Top),
                         (bounds.Right, bounds.Top),
                         ColourF.White));
-                _context.AddLine(
+                _lm.AddLine(
                     new LineData(
                         (bounds.Left, bounds.Bottom),
                         (bounds.Right, bounds.Bottom),
                         ColourF.White));
-                _context.AddLine(
+                _lm.AddLine(
                     new LineData(
                         (bounds.Left, bounds.Top),
                         (bounds.Left, bounds.Bottom),
                         ColourF.White));
-                _context.AddLine(
+                _lm.AddLine(
                     new LineData(
                         (bounds.Right, bounds.Top),
                         (bounds.Right, bounds.Bottom),
                         ColourF.White));
             }
             
-            _context.RenderLines();
-            _context.ClearLines();
+            _context.Render(_lm);
+            _lm.ClearLines();
             
-            _context.Render(_um, _multiplier);
+            _context.Render(_um, args);
         }
         
         protected override void OnKeyDown(KeyEventArgs e)

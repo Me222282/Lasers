@@ -6,15 +6,13 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public class LineDC : DrawContext, ICollection<LineData>
+    public class LineManager : IRenderable, ICollection<LineData>
     {
-        public unsafe LineDC()
+        public unsafe LineManager()
         {
-            _shader = BasicShader.GetInstance();
+            _shader = Shapes.BasicShader;
             _buffer = new ArrayBuffer<LineData>(1, BufferUsage.DrawFrequent);
             _dl = new DrawingLines();
-            
-            RenderState = RenderState.BlendReady;
             
             // Vertices
             _dl.AddBuffer(_buffer, 0, 0, sizeof(LineData) / 2, DataType.Double, AttributeSize.D2);
@@ -30,20 +28,19 @@ namespace Lasers
         int ICollection<LineData>.Count => _lines.Count;
         bool ICollection<LineData>.IsReadOnly => false;
         
-        public double Multiplier { get; internal set; }
-        
-        internal void RenderLines()
+        public void OnRender(IDrawingContext context)
         {
             lock (_lines)
             {
                 _buffer.SetData(CollectionsMarshal.AsSpan(_lines));
                 
-                Shader = _shader;
+                context.Shader = _shader;
                 _shader.ColourSource = ColourSource.AttributeColour;
-                Model = Matrix.Identity;
-                this.Draw(_dl);
+                context.Model = Matrix.Identity;
+                context.Draw(_dl);
             }
         }
+        public void SetLines(List<LineData> lines) { _lines = lines; }
         
         public void AddLine(LineData line)
         {

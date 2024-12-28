@@ -183,7 +183,7 @@ namespace Lasers
         private BasicShader _shader = BasicShader.GetInstance();
         private GraphicsContext _context;
         
-        public override void Render(LineDC context)
+        public override void OnRender(IDrawingContext context, DrawArgs args)
         {
             if (Filled)
             {
@@ -194,7 +194,7 @@ namespace Lasers
                 context.Draw(_drawable);
             }
             
-            base.Render(context);
+            base.OnRender(context, args);
         }
         
         public override QueryData QueryMousePos(Vector2 mousePos, double range)
