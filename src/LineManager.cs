@@ -6,7 +6,7 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public class LineManager : IRenderable, ICollection<LineData>
+    public class LineManager : IRenderable<bool>, ICollection<LineData>
     {
         public unsafe LineManager()
         {
@@ -28,14 +28,17 @@ namespace Lasers
         int ICollection<LineData>.Count => _lines.Count;
         bool ICollection<LineData>.IsReadOnly => false;
         
-        public void OnRender(IDrawingContext context)
+        public void OnRender(IDrawingContext context, bool shader)
         {
             lock (_lines)
             {
                 _buffer.SetData(CollectionsMarshal.AsSpan(_lines));
                 
-                context.Shader = _shader;
-                _shader.ColourSource = ColourSource.AttributeColour;
+                if (shader)
+                {
+                    context.Shader = _shader;
+                    _shader.ColourSource = ColourSource.AttributeColour;
+                }
                 context.Model = Matrix.Identity;
                 context.Draw(_dl);
             }

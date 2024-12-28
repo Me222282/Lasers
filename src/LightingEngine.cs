@@ -8,20 +8,78 @@ using Zene.Structs;
 
 namespace Lasers
 {
-    public class LightingEngine : IRenderable<DrawArgs>
+    public class LightingEngine
     {
+        public class LSWrap
+        {
+            public ILightSource Source;
+            public List<LineData> Lines;
+            public ColourF3 Colour;
+            public double WL;
+        }
+        private class LSWrapCast : IList<ILightSource>
+        {
+            public LSWrapCast(List<LSWrap> s) => Source = s;
+            public List<LSWrap> Source;
+            public ILightSource this[int index] { get => Source[index].Source; set => Source[index].Source = value; }
+            public int Count => Source.Count;
+            public bool IsReadOnly => false;
+            public void Add(ILightSource item)
+            {
+                Source.Add(new LSWrap()
+                {
+                    Source = item,
+                    Lines = new List<LineData>()
+                });
+            }
+            public void Clear() => Source.Clear();
+            public bool Contains(ILightSource item) => Source.Exists(p => p.Source == item);
+            public void CopyTo(ILightSource[] array, int arrayIndex) => throw new NotSupportedException();
+            public IEnumerator<ILightSource> GetEnumerator() => new EnumerCast(Source.GetEnumerator());
+            public int IndexOf(ILightSource item) => Source.FindIndex(p => p.Source == item);
+            public void Insert(int index, ILightSource item)
+            {
+                Source.Insert(index, new LSWrap()
+                {
+                    Source = item,
+                    Lines = new List<LineData>()
+                });
+            }
+            public bool Remove(ILightSource item)
+            {
+                int i = IndexOf(item);
+                if (i < 0) { return false; }
+                Source.RemoveAt(i);
+                return true;
+            }
+            public void RemoveAt(int index) => Source.RemoveAt(index);
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+        private class EnumerCast : IEnumerator<ILightSource>
+        {
+            public EnumerCast(IEnumerator<LSWrap> s) => Source = s;
+            public IEnumerator<LSWrap> Source;
+            public ILightSource Current => Source.Current.Source;
+            object IEnumerator.Current => Source.Current.Source;
+            public void Dispose() => Source.Dispose();
+            public bool MoveNext() => Source.MoveNext();
+            public void Reset() => Source.Reset();
+        }
+        
         public LightingEngine()
         {
-            
+            LightSources = new LSWrapCast(_ls);
         }
         public LightingEngine(Box bounds)
+            : this()
         {
             Bounds = bounds;
         }
         
-        public List<ILightSource> LightSources { get; } = new List<ILightSource>();
+        private List<LSWrap> _ls = new List<LSWrap>();
+        private List<TextureRenderer> _frames = new List<TextureRenderer>();
+        public IList<ILightSource> LightSources { get; }
         public List<ILightObject> Objects { get; } = new List<ILightObject>();
-        
         
         public Box Bounds { get; set; } = Box.One;
         public bool ReflectiveBounds { get; set; } = true;
@@ -29,21 +87,34 @@ namespace Lasers
         
         // public int Bounces { get; set; } = 1;
         
-        public void OnRender(IDrawingContext context, DrawArgs args)
+        public LightRender CreateRender() => new LightRender(_ls);
+        
+        public void CalculateRays()
         {
-            Parallel.ForEach(LightSources, (ls) =>
+            Parallel.ForEach(_ls, (ls) =>
             {
-                CalculateLight(ls, args.Lines);
+                ls.Lines.Clear();
+                double wl = ls.Source.Wavelength;
+                if (wl != ls.WL)
+                {
+                    ls.WL = wl;
+                    ls.Colour = ColourF3.FromWavelength((float)wl);
+                }
+                CalculateLight(ls.Source, ls.Lines, ls.Colour);
             });
         }
         
-        public void CalculateLight(ILightSource source, ICollection<LineData> lines)
+        public void CalculateLight(ILightSource source, ICollection<LineData> lines, ColourF3 c = default)
         {
+            if (c == default)
+            {
+                c = ColourF3.FromWavelength((float)source.Wavelength);
+            }
+            
             Parallel.ForEach(source, (d) =>
             {
                 double m = GetMedium(source.Location, null);
                 Ray ray = new Ray(source.Location, d, m);
-                ColourF3 c = ColourF3.FromWavelength((float)source.Wavelength);
                 CalculateRay(ray, source.Distance, c, lines);
             });
             
@@ -114,7 +185,10 @@ namespace Lasers
                         seg.B.Y <= Bounds.Top &&
                         seg.B.Y >= Bounds.Bottom))
                     {
-                        lines.Add(new LineData(ray.Line.Location, seg.B, oldC, end));
+                        lock (lines)
+                        {
+                            lines.Add(new LineData(ray.Line.Location, seg.B, oldC, end));
+                        }
                         break;
                     }
                     
@@ -135,7 +209,10 @@ namespace Lasers
                 lastSeg.B = ray.Line.Location;
                 
                 ColourF nc = end.Lerp(c, (float)(dist / totalDist));
-                lines.Add(new LineData(lastSeg.A, lastSeg.B, oldC, nc));
+                lock (lines)
+                {
+                    lines.Add(new LineData(lastSeg.A, lastSeg.B, oldC, nc));
+                }
                 oldC = nc;
                 
                 if (dist <= 0d || ray.Line.Direction == Vector2.Zero) { break; }

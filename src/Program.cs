@@ -8,7 +8,21 @@ using Zene.GUI;
 namespace Lasers
 {
     class Program : Element
-    {   
+    {
+        static void Main(string[] args)
+        {
+            Core.Init();
+            
+            GUIWindow gui = new GUIWindow(800, 500, "LIGHT");
+            Program p = new Program();
+            gui.AddChild(p);
+            gui.RootElement.Focus = p;
+            //p.Run();
+            gui.RunMultithread();
+            
+            Core.Terminate();
+        }
+        
         public Program()
         {
             Graphics = new LocalGraphics(this, OnRender)
@@ -28,11 +42,13 @@ namespace Lasers
                 RenderState = RenderState.BlendReady
             };
             _engine = new LightingEngine();
+            _lights = _engine.CreateRender();
+            _lights.Hisogram = false;
             _ray = new DisperseRays()
             {
                 Wavelength = 578d,
                 Distance = 2d,
-                Range = Radian.Degrees(5d),
+                Range = Radian.Degrees(45d),
                 RayCount = 100
             };
             _engine.LightSources.Add(_ray);
@@ -54,21 +70,8 @@ namespace Lasers
         private Animator _animator;
         private AnimatorData<Radian> _spin;
         
-        static void Main(string[] args)
-        {
-            Core.Init();
-            
-            GUIWindow gui = new GUIWindow(800, 500, "LIGHT");
-            Program p = new Program();
-            gui.AddChild(p);
-            gui.RootElement.Focus = p;
-            //p.Run();
-            gui.RunMultithread();
-            
-            Core.Terminate();
-        }
-        
         private LightingEngine _engine;
+        private LightRender _lights;
         private LineManager _lm;
         private DrawContext _context;
         private UserManager _um;
@@ -85,7 +88,7 @@ namespace Lasers
             _animator.Invoke();
             
             _multiplier = _renderScale.X / (Size.X * 0.5d * ViewScale);
-            _context.Render(_engine, new DrawArgs(_lm, _multiplier));
+            _engine.CalculateRays();
         }
         private void OnRender(object sender, RenderArgs e)
         {
@@ -137,8 +140,13 @@ namespace Lasers
                         ColourF.White));
             }
             
-            _context.Render(_lm);
+            _context.Render(_lm, true);
             _lm.ClearLines();
+            
+            // render rays
+            _context.Model = Matrix.Identity;
+            _context.View = Matrix.Identity;
+            _context.Render(_lights, args);
             
             _context.Render(_um, args);
         }
@@ -175,6 +183,11 @@ namespace Lasers
                 }
                 
                 _spin.Reset(_animator);
+                return;
+            }
+            if (e[Keys.H])
+            {
+                _lights.Hisogram = !_lights.Hisogram;
                 return;
             }
             // if (e[Keys.Equal])
