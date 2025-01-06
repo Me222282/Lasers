@@ -48,7 +48,7 @@ namespace Lasers
             {
                 Wavelength = 578d,
                 Distance = 2d,
-                Range = Radian.Degrees(45d),
+                Range = Radian.Degrees(5d),
                 RayCount = 100
             };
             _engine.LightSources.Add(_ray);

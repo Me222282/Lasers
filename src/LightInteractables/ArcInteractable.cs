@@ -80,7 +80,7 @@ namespace Lasers
             Box bounds = new Box(-hsx, hsx, size.Y, 0d);
             
             // Shapes.CircleShader.Size = r * 2d;
-            Shapes.CircleShader.Offset = ((hsx, size.Y - _radius) / size);
+            Shapes.CircleShader.Offset = (hsx, size.Y - _radius) / size;
             Shapes.CircleShader.SetSR(size, _radius);
             Shapes.CircleShader.LineWidth = args.Multiplier;
             
@@ -140,8 +140,6 @@ namespace Lasers
             return ca.PerpDot(cv) <= 0d && cb.PerpDot(cv) >= 0d;
         }
         
-        private const double _tolerance = 0.00001;
-        
         public Vector2 RayIntersection(FindRayArgs args)
         {
             Segment2 ray = args.Ray;
@@ -153,21 +151,22 @@ namespace Lasers
             double b = 2d * offset.Dot(change);
             double c = offset.Dot(offset) - (_radius * _radius);
             
-            double discriminant = (b * b) - (4 * a * c);
+            double discriminant = (b * b) - (4d * a * c);
             // No intersection
-            if (discriminant < 0)
+            if (discriminant < 0d)
             {
                 return Vector2.PositiveInfinity;
             }
             
             double t;
-            double T = 0d;
+            double T = -1d;
             Vector2 p = 0d;
             Vector2 Op = 0d;
             
-            if (discriminant == 0)
+            if (discriminant == 0d)
             {
                 t = (-b / (2d * a));
+                p = ray.A + (t * change);
             }
             else
             {
@@ -177,15 +176,7 @@ namespace Lasers
                 double t2 = ((-discriminant - b) / (2d * a));
                 
                 Vector2 p1 = ray.A + (t1 * change);
-                // if (!InSector(p1))
-                // {
-                //     t1 = -1d;
-                // }
                 Vector2 p2 = ray.A + (t2 * change);
-                // if (!InSector(p2))
-                // {
-                //     t2 = -1d;
-                // }
                 
                 if (t1 <= 0d)
                 {
@@ -241,27 +232,14 @@ namespace Lasers
                 return Vector2.PositiveInfinity;
             }
             
-            bool inside = (ray.A - _centre).Dot(ray.Change) < 0d;
-            
             // heading away or there are 2 points
-            if (!inside || T > 0d)
+            if (T > 0d || b >= 0d)
             {
-                t = -1d;
-            }
-            
-            // Use other intersection
-            if (t <= 0d)
-            {
-                if (T > 0d)
+                if (!InSector(Op))
                 {
-                    if (!InSector(Op))
-                    {
-                        return Vector2.PositiveInfinity;
-                    }
-                    return Op;
+                    return Vector2.PositiveInfinity;
                 }
-                
-                return Vector2.PositiveInfinity;
+                return Op;
             }
             
             if (!InSector(p))

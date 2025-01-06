@@ -8,7 +8,7 @@ namespace Lasers
     {
         public DensityShader()
         {
-            Create(ShaderPresets.BasicVertex, File.ReadAllText("./shaders/densityFrag.glsl"),
+            Create(ShaderPresets.BasicVertex, File.ReadAllText("./shaders/densityFrag.glsl"), -1,
                 "matrix", "uTextureSlot", "div", "uColour");
             
             // _m2m3 = new MultiplyMatrix4(null, null);
